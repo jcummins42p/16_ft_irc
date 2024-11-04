@@ -1,0 +1,49 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_OUTPUT_EXCMD	mixed	/number, pattern, mixed, or combineV2/
+!_TAG_OUTPUT_FILESEP	slash	/slash or backslash/
+!_TAG_OUTPUT_MODE	u-ctags	/u-ctags or e-ctags/
+!_TAG_PATTERN_LENGTH_LIMIT	96	/0 for no limit/
+!_TAG_PROC_CWD	/nfs/homes/jcummins/Projects/16_ft_irc/	//
+!_TAG_PROGRAM_AUTHOR	Universal Ctags Team	//
+!_TAG_PROGRAM_NAME	Universal Ctags	/Derived from Exuberant Ctags/
+!_TAG_PROGRAM_URL	https://ctags.io/	/official site/
+!_TAG_PROGRAM_VERSION	5.9.0	//
+$(NAME)	Makefile	/^$(NAME): $(OBJS)$/;"	t
+$(OBJ_DIR)/%.o	Makefile	/^$(OBJ_DIR)\/%.o: $(SRC_DIR)\/%.cpp$/;"	t
+BUFFER_SIZE	include/ircserv.hpp	/^#define BUFFER_SIZE /;"	d
+CXX	Makefile	/^CXX = g++$/;"	m
+Client	include/ircserv.hpp	/^class Client {$/;"	c
+Client	src/ircserv.cpp	/^Client::Client(int socket_fd) : socket_fd(socket_fd) {}$/;"	f	class:Client
+INCLUDES	Makefile	/^INCLUDES = -I.\/include$/;"	m
+IRCSERV_HPP	include/ircserv.hpp	/^#define IRCSERV_HPP$/;"	d
+IRCServer	include/ircserv.hpp	/^class IRCServer {$/;"	c
+IRCServer	src/ircserv.cpp	/^IRCServer::IRCServer(int port, const std::string& password) : port(port), password(password), se/;"	f	class:IRCServer
+MAX_CLIENTS	include/ircserv.hpp	/^#define MAX_CLIENTS /;"	d
+NAME	Makefile	/^NAME = ircserv$/;"	m
+OBJS	Makefile	/^OBJS = $(SRCS:$(SRC_DIR)\/%.cpp=$(OBJ_DIR)\/%.o)$/;"	m
+OBJ_DIR	Makefile	/^OBJ_DIR = obj$/;"	m
+SRCS	Makefile	/^SRCS = $(shell find $(SRC_DIR) -name '*.cpp')$/;"	m
+SRC_DIR	Makefile	/^SRC_DIR = src$/;"	m
+acceptNewClient	src/ircserv.cpp	/^void IRCServer::acceptNewClient() {$/;"	f	class:IRCServer	typeref:typename:void
+all	Makefile	/^all: $(NAME)$/;"	t
+clean	Makefile	/^clean:$/;"	t
+clients	include/ircserv.hpp	/^    std::map<int, Client*> clients;  \/\/ Map for client socket to Client objects$/;"	m	class:IRCServer	typeref:typename:std::map<int,Client * >
+fclean	Makefile	/^fclean: clean$/;"	t
+getSocket	src/ircserv.cpp	/^int Client::getSocket() const {$/;"	f	class:Client	typeref:typename:int
+handleClient	src/ircserv.cpp	/^void IRCServer::handleClient(int client_fd) {$/;"	f	class:IRCServer	typeref:typename:void
+main	src/main.cpp	/^int main(int argc, char* argv[]) {$/;"	f	typeref:typename:int
+nickname	include/ircserv.hpp	/^    std::string nickname;$/;"	m	class:Client	typeref:typename:std::string
+password	include/ircserv.hpp	/^    std::string password;$/;"	m	class:IRCServer	typeref:typename:std::string
+poll_fds	include/ircserv.hpp	/^    std::vector<pollfd> poll_fds;$/;"	m	class:IRCServer	typeref:typename:std::vector<pollfd>
+port	include/ircserv.hpp	/^    int port;$/;"	m	class:IRCServer	typeref:typename:int
+re	Makefile	/^re: fclean all$/;"	t
+removeClient	src/ircserv.cpp	/^void IRCServer::removeClient(int client_fd) {$/;"	f	class:IRCServer	typeref:typename:void
+runServer	src/ircserv.cpp	/^void IRCServer::runServer() {$/;"	f	class:IRCServer	typeref:typename:void
+sendMessage	src/ircserv.cpp	/^void Client::sendMessage(const std::string& message) {$/;"	f	class:Client	typeref:typename:void
+server_addr	include/ircserv.hpp	/^    struct sockaddr_in server_addr;$/;"	m	class:IRCServer	typeref:struct:sockaddr_in
+server_fd	include/ircserv.hpp	/^    int server_fd;$/;"	m	class:IRCServer	typeref:typename:int
+setupServer	src/ircserv.cpp	/^bool IRCServer::setupServer() {$/;"	f	class:IRCServer	typeref:typename:bool
+socket_fd	include/ircserv.hpp	/^    int socket_fd;$/;"	m	class:Client	typeref:typename:int
+~Client	src/ircserv.cpp	/^Client::~Client() {$/;"	f	class:Client
+~IRCServer	src/ircserv.cpp	/^IRCServer::~IRCServer() {$/;"	f	class:IRCServer
