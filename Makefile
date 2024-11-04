@@ -6,28 +6,39 @@
 #    By: jcummins <jcummins@student.42prague.com>   +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/04 14:17:14 by jcummins          #+#    #+#              #
-#    Updated: 2024/11/04 14:17:17 by jcummins         ###   ########.fr        #
+#    Updated: 2024/11/04 15:15:08 by jcummins         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 NAME = ircserv
 
-SRCS = $(wildcard src/*.cpp)
-OBJS = $(SRCS:.cpp=.o)
+SRC_DIR = src
+OBJ_DIR = obj
+
+SRCS = $(shell find $(SRC_DIR) -name '*.cpp')
+OBJS = $(SRCS:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
 INCLUDES = -I./include
 
 CXX = g++
-CXXFLAGS = -Wall -Wextra -Werror -std=c++98 $(INCLUDES)
+CXXFLAGS = -Wall -Wextra -Werror -Wunused-result -pedantic -std=c++98 $(INCLUDES)
 
 all: $(NAME)
 
 $(NAME): $(OBJS)
-	$(CXX) $(CXXFLAGS) -o $(NAME) $(OBJS)
+	@echo "✅ Linking object files into executable $@:"
+	@$(CXX) $(CXXFLAGS) $^ -o $@
+
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
+	@echo "✅ Compiling object file $@ from source file $<"
+	@mkdir -p $(@D)
+	@$(CXX) $(CXXFLAGS) -c $< -o $@
 
 clean:
-	rm -f $(OBJS)
+	@echo "✅ Removing all object files and dir"
+	@rm -rf $(OBJ_DIR)
 
 fclean: clean
-	rm -f $(NAME)
+	@echo "✅ Removing executable"
+	@rm -f $(NAME)
 
 re: fclean all
