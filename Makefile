@@ -10,19 +10,22 @@
 #                                                                              #
 # **************************************************************************** #
 
-NAME = ircserv
 
-SRCS = $(wildcard src/*.cpp)
+NAME = ircserver
+
+SRCS = irc_server.cpp
 OBJS = $(SRCS:.cpp=.o)
-INCLUDES = -I./include
 
 CXX = g++
-CXXFLAGS = -Wall -Wextra -Werror -std=c++98 $(INCLUDES)
+CXXFLAGS = -Wall -Wextra -Werror -std=c++98
 
 all: $(NAME)
 
 $(NAME): $(OBJS)
-	$(CXX) $(CXXFLAGS) -o $(NAME) $(OBJS)
+	$(CXX) $(CXXFLAGS) -o $@ $^
+
+%.o: %.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 clean:
 	rm -f $(OBJS)
