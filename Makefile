@@ -6,11 +6,12 @@
 #    By: jcummins <jcummins@student.42prague.com>   +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/04 14:17:14 by jcummins          #+#    #+#              #
-#    Updated: 2024/11/04 15:23:49 by jcummins         ###   ########.fr        #
+#    Updated: 2024/11/05 17:34:31 by jcummins         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-NAME = ircserv
+
+NAME = ircserver
 
 SRC_DIR = src
 OBJ_DIR = obj

@@ -6,24 +6,25 @@
 /*   By: pyerima <pyerima@student.42.fr>            #+#  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024-11-04 13:00:32 by pyerima           #+#    #+#             */
-/*   Updated: 2024/11/04 15:29:12 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/11/05 17:42:08 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
 #ifndef IRCSERV_HPP
-#define IRCSERV_HPP
+# define IRCSERV_HPP
 
-#include <iostream>
-#include <string>
-#include <vector>
-#include <map>
-#include <poll.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <unistd.h>
-#include <fcntl.h>
+# include <iostream>
+# include <string>
+# include <vector>
+# include <map>
+# include <poll.h>
+# include <netinet/in.h>
+# include <arpa/inet.h>
+# include <unistd.h>
+# include <fcntl.h>
 
-#define MAX_CLIENTS 100
-#define BUFFER_SIZE 512
+# define MAX_CLIENTS 100
+# define BUFFER_SIZE 512
 
 class Client;  // Forward declaration for client class
 
