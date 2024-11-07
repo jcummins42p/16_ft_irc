@@ -16,7 +16,7 @@
 
 int main(int argc, char** argv) {
     if (argc != 2) {
-        std::cerr << "Usage: " << argv[0] << " <port>" << std::endl;
+        std::cerr << "usage: " << argv[0] << " <port>" << std::endl;
         return 1;
     }
 
@@ -24,7 +24,7 @@ int main(int argc, char** argv) {
     Server server(port);
 
     if (!server.start()) {
-        std::cerr << "Failed to start the server." << std::endl;
+        std::cerr << "failed to start the server." << std::endl;
         return 1;
     }
 
