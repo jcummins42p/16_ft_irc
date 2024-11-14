@@ -1,0 +1,46 @@
+Hi! =)
+
+I've read the code and tried to play with it,
+but I need to have changes written before I'd implement them.
+So, here we go:
+
+Makefile:
+- Add an -fsanitize=address flag, so we're aware of leaks and other problems
+
+IRCServer.hpp:
+- Change the filename to Server.hpp or change Server.cpp to IRC...
+- We don't have a server password, in the subject:
+		"Your executable will be run as follows:
+		./ircserv <port> <password>"
+- What's the use of PART command?
+
+Server.cpp:
+- Again, add the password
+- Also, shouldn't the password be hashed? So we don't have am actual password in memory, only an encripted version?
+	And then hash what the user passes and compare these encrypted things, for safety, yo know.
+- In NICK, USER and other commands we don't check for an empty input, so the name could be changed for nothing, for example.
+- All channel logic should be in the Channel class, including admin rights checks (you can't kick someone if you're not an operator)
+- In processMessage method - shouldn't we print a message if it wasn't a command?
+
+Client.hpp:
+- Data should be private. And add getters/setters for what we need to read or change on the go
+- is_operator can't be here, there should be a list of admins in the Channel class
+
+Client.cpp:
+- Again, add getters/setters for private data.
+
+Channel.hpp:
+- Again, data can't be public. So, private section and getters/setters.
+
+Channel.cpp:
+- How could be user_limit be -1? I'd set it to MAX_CLIENTS first and then an operator can change it.
+- Also, when user_limit is changed - we should check if it's <= MAX_CLIENTS.
+- Right now we have no checks for who is doing the action - again, only an admin (operator) can kick or change modes.
+- Password should be hashed.
+
+
+Overall:
+- We need to add somehow this ctrl+D thing (the subject, page 6), I have no idea how to do it
+- When the server is closed - the user should be at least informed about it somehow, maybe?
+	Right now closing the server just cleans itself and that's it, but maybe I'm wrong.
+
