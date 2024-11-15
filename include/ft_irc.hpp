@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ft_irc.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: pyerima <pyerima@student.42.fr>            #+#  +:+       +#+        */
+/*   By: mmakagon <mmakagon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024-11-04 13:00:32 by pyerima           #+#    #+#             */
-/*   Updated: 2024/11/05 18:32:53 by jcummins         ###   ########.fr       */
+/*   Created: 2024/11/04 13:00:32 by pyerima           #+#    #+#             */
+/*   Updated: 2024/11/15 11:30:42 by mmakagon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,5 +33,7 @@ class Client;
 # include "Channel.hpp"
 # include "Client.hpp"
 # include "IRCServer.hpp"
+
+unsigned int	simpleHash(std::string& in_str);
 
 #endif

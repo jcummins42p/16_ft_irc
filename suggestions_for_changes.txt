@@ -5,10 +5,10 @@ but I need to have changes written before I'd implement them.
 So, here we go:
 
 Makefile:
-- Add an -fsanitize=address flag, so we're aware of leaks and other problems
++ Add an -fsanitize=address flag, so we're aware of leaks and other problems
 
 IRCServer.hpp:
-- Change the filename to Server.hpp or change Server.cpp to IRC...
++ Change the filename to Server.hpp or change Server.cpp to IRC...
 - We don't have a server password, in the subject:
 		"Your executable will be run as follows:
 		./ircserv <port> <password>"

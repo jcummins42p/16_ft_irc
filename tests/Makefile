@@ -6,19 +6,21 @@
 #    By: mmakagon <mmakagon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/04 14:17:14 by jcummins          #+#    #+#              #
-#    Updated: 2024/11/14 13:51:12 by mmakagon         ###   ########.fr        #
+#    Updated: 2024/11/15 12:00:02 by mmakagon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 
-NAME = ircserver
+NAME = tests
 
-SRC_DIR = src
+SRC_DIR = ../src
 OBJ_DIR = obj
 
-SRCS = $(shell find $(SRC_DIR) -name '*.cpp')
+SRCS = tests.cpp \
+		$(SRC_DIR)/simpleHash.cpp \
+
 OBJS = $(SRCS:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
-INCLUDES = -I./include
+INCLUDES = -I../include
 
 CXX = c++
 CXXFLAGS = -Wall -Wextra -Werror -Wunused-result -pedantic -std=c++98 $(INCLUDES) -fsanitize=address
