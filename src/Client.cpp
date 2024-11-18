@@ -6,7 +6,7 @@
 /*   By: mmakagon <mmakagon@student.42.com>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 14:48:02 by pyerima           #+#    #+#             */
-/*   Updated: 2024/11/18 19:04:57 by mmakagon         ###   ########.fr       */
+/*   Updated: 2024/11/18 19:19:52 by mmakagon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,21 +23,22 @@ Client::~Client( void ) {
 
 
 // Getter - setters
-int			Client::getFd(void) const { return (fd); }
-std::string	Client::getNick(void) const { return nick; }
-std::string	Client::getUser(void) const { return user; }
-bool		Client::getAutentificated(void) const { return is_autentificated; }
+const int&			Client::getFd(void) const { return (fd); }
+const std::string&	Client::getNick(void) const { return nick; }
+const std::string&	Client::getUser(void) const { return user; }
+bool				Client::getAutentificated(void) const { return is_autentificated; }
 
-void		Client::setAutentificated(void) { is_autentificated = true; }
 
-void		Client::setNick(const std::string& in_nick) {
+void	Client::setAutentificated(void) { is_autentificated = true; }
+
+void	Client::setNick(const std::string& in_nick) {
 	if (in_nick.empty())
 		std::cerr << "Can't set an empty nick!" << std::endl;
 	else
 		nick = in_nick;
 }
 
-void		Client::setUser(const std::string& in_username) {
+void	Client::setUser(const std::string& in_username) {
 	if (in_username.empty())
 		std::cerr << "Can't set an empty username!" << std::endl;
 	else

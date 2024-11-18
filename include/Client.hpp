@@ -6,7 +6,7 @@
 /*   By: mmakagon <mmakagon@student.42.com>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 14:48:02 by pyerima           #+#    #+#             */
-/*   Updated: 2024/11/18 19:10:27 by mmakagon         ###   ########.fr       */
+/*   Updated: 2024/11/18 19:18:28 by mmakagon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,14 +22,14 @@ public:
 	explicit Client(int fd);
 	~Client( void );
 
-	int			getFd(void) const;
-	std::string	getNick(void) const;
-	std::string	getUser(void) const;
-	bool		getAutentificated(void) const;
+	const int&			getFd(void) const;
+	const std::string&	getNick(void) const;
+	const std::string&	getUser(void) const;
+	bool				getAutentificated(void) const;
 
-	void		setAutentificated(void);
-	void		setNick(const std::string& in_nick);
-	void		setUser(const std::string& in_username);
+	void				setAutentificated(void);
+	void				setNick(const std::string& in_nick);
+	void				setUser(const std::string& in_username);
 
 	std::set<std::string>	channels;
 private:
