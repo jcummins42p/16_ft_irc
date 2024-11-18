@@ -6,7 +6,7 @@
 /*   By: mmakagon <mmakagon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 14:48:02 by pyerima           #+#    #+#             */
-/*   Updated: 2024/11/15 11:27:40 by mmakagon         ###   ########.fr       */
+/*   Updated: 2024/11/18 13:15:50 by mmakagon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,7 @@
 
 class IRCServer {
 	public:
-		IRCServer(int port);
+		IRCServer(int port, std::string in_pass);
 		~IRCServer();
 		void run();
 
@@ -38,7 +38,7 @@ class IRCServer {
 		int								server_fd;
 		std::map<int, Client*>			clients;
 		std::map<std::string, Channel*>	channels;
-		unsigned int					hased_pass;
+		unsigned int					hashed_pass;
 
 		void acceptClient(struct pollfd* fds);
 		void handleClient(int client_fd);

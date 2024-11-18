@@ -6,7 +6,7 @@
 #    By: mmakagon <mmakagon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/04 14:17:14 by jcummins          #+#    #+#              #
-#    Updated: 2024/11/15 12:00:02 by mmakagon         ###   ########.fr        #
+#    Updated: 2024/11/18 13:16:27 by mmakagon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -17,7 +17,7 @@ SRC_DIR = ../src
 OBJ_DIR = obj
 
 SRCS = tests.cpp \
-		$(SRC_DIR)/simpleHash.cpp \
+		$(SRC_DIR)/hashSimple.cpp \
 
 OBJS = $(SRCS:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
 INCLUDES = -I../include

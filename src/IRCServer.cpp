@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Server.cpp                                         :+:      :+:    :+:   */
+/*   IRCServer.cpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: mmakagon <mmakagon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 14:48:02 by pyerima           #+#    #+#             */
-/*   Updated: 2024/11/14 13:52:56 by mmakagon         ###   ########.fr       */
+/*   Updated: 2024/11/18 14:48:42 by mmakagon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,13 +15,14 @@
 #include "Client.hpp"
 #include "Channel.hpp"
 
-IRCServer::IRCServer(int port)
+IRCServer::IRCServer(int port, std::string in_pass)
 {
 	server_fd = socket(AF_INET, SOCK_STREAM, 0);
 	struct sockaddr_in server_addr;
 	server_addr.sin_family = AF_INET;
 	server_addr.sin_addr.s_addr = INADDR_ANY;
 	server_addr.sin_port = htons(port);
+	hashed_pass = hashSimple(in_pass);
 
 	bind(server_fd, (struct sockaddr *)&server_addr, sizeof(server_addr));
 	listen(server_fd, 5);
@@ -31,6 +32,7 @@ IRCServer::~IRCServer( void )
 {
 	//for loop to iterate through the clients map
 	for (std::map<int, Client*>::iterator it = clients.begin(); it != clients.end(); ++it) {
+		close(it->first);
 		delete it->second;
 	}
 	//for loop to iterate through the channels map
@@ -78,6 +80,8 @@ void IRCServer::acceptClient(struct pollfd* fds)
 
 	std::cout << "Client connected: " << client_fd << std::endl;
 	clients[client_fd] = new Client(client_fd);
+	const std::string prompt = "Please enter the password: ";
+    send(client_fd, prompt.c_str(), prompt.size(), 0);
 
 	// add new client to poll array
 	for (int i = 1; i <= MAX_CLIENTS; i++) {
@@ -106,7 +110,24 @@ void IRCServer::handleClient(int client_fd)
 
 	buffer[bytes_received] = '\0';
 	std::string message(buffer);
-	processMessage(client_fd, message);
+
+	if (!clients[client_fd]->is_autentificated) {
+		if (!message.empty() && message[message.length() - 1] == '\n')
+			message.erase(message.length() - 1);
+		unsigned int in_hashed_pass = hashSimple(message);
+
+		if (in_hashed_pass != this->hashed_pass) {
+			const std::string prompt = "Wrong password, try again: ";
+			send(client_fd, prompt.c_str(), prompt.size(), 0);
+		}
+		else {
+			clients[client_fd]->is_autentificated = true;
+			const std::string prompt = "Authorization successful!\n";
+			send(client_fd, prompt.c_str(), prompt.size(), 0);
+		}
+	}
+	else
+		processMessage(client_fd, message);
 }
 
 void IRCServer::processMessage(int client_fd, const std::string& message)
@@ -138,34 +159,51 @@ void IRCServer::processMessage(int client_fd, const std::string& message)
 	} else if (command == "INVITE") {
 		handleInviteCommand(client_fd, iss);
 	} else
-		std::cout << message;
+		std::cout << "Client number " << client_fd << ": " << message;
 }
 
 //the NICK command
 void IRCServer::handleNickCommand(int client_fd, std::istringstream& iss)
 {
-	std::string nick;
-	iss >> nick; // Read the nickname from the stream
-	clients[client_fd]->nick = nick; // Set the client's nickname
-	std::cout << "Client " << client_fd << " set nickname to " << nick << std::endl;
+	std::string in_nick;
+	iss >> in_nick; // Read the nickname from the stream
+	if (in_nick.empty()) {
+		const std::string prompt = "You can't set an empty nickname!\n";
+		send(client_fd, prompt.c_str(), prompt.size(), 0);
+	}
+	else {
+		clients[client_fd]->nick = in_nick; // Set the client's nickname
+		std::cout << "Client " << client_fd << " set nickname to " << clients[client_fd]->nick << std::endl;
+	}
 }
 
 //the USER command
 void IRCServer::handleUserCommand(int client_fd, std::istringstream& iss)
 {
-	std::string user;
-	iss >> user; // Read the username from the stream
-	clients[client_fd]->user = user; // Set the client's username
-	std::cout << "Client " << client_fd << " set username to " << user << std::endl;
+	std::string in_username;
+	iss >> in_username; // Read the username from the stream
+	if (in_username.empty()) {
+		const std::string prompt = "You can't set an empty username!\n";
+		send(client_fd, prompt.c_str(), prompt.size(), 0);
+	}
+	else {
+		clients[client_fd]->user = in_username; // Set the client's username
+		std::cout << "Client " << client_fd << " set username to " << clients[client_fd]->user << std::endl;
+	}
 }
 
-	//the JOIN command
+//the JOIN command
 void IRCServer::handleJoinCommand(int client_fd, std::istringstream& iss)
 {
 	std::string channel_name;
 	iss >> channel_name; // read the channel name from the stream
 	Channel* channel;
 
+	if (channel_name.empty()) {
+		const std::string prompt = "Can't set an empty channel name!\n";
+		send(client_fd, prompt.c_str(), prompt.size(), 0);
+		return ;
+	}
 	// check if the channel exists
 	if (channels.find(channel_name) == channels.end()) {
 		channel = new Channel(channel_name); // create a new channel if it doesn't exist
@@ -179,7 +217,7 @@ void IRCServer::handleJoinCommand(int client_fd, std::istringstream& iss)
 	std::cout << "Client " << client_fd << " joined channel " << channel_name << std::endl;
 }
 
-		//the PART command
+//the PART command
 void IRCServer::handlePartCommand(int client_fd, std::istringstream& iss)
 {
 	std::string channel_name;
@@ -195,7 +233,7 @@ void IRCServer::handlePartCommand(int client_fd, std::istringstream& iss)
 	}
 }
 
-	//the PRIVMSG command
+//the PRIVMSG command
 void IRCServer::handlePrivmsgCommand(int client_fd, std::istringstream& iss)
 {
 	std::string target;
@@ -224,6 +262,12 @@ void IRCServer::handleTopicCommand(int client_fd, std::istringstream& iss)
 	std::string channel_name, new_topic;
 	iss >> channel_name; // read channel name
 	std::getline(iss, new_topic); // read the new topic
+
+	if (new_topic.empty()) {
+		const std::string prompt = "Cannot set an empty topic!\n";
+		send(client_fd, prompt.c_str(), prompt.size(), 0);
+		return ;
+	}
 
 	if (channels.find(channel_name) != channels.end()) {
 		Channel* channel = channels[channel_name]; // get channel

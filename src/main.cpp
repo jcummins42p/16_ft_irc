@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: pyerima <pyerima@student.42.fr>            #+#  +:+       +#+        */
+/*   By: mmakagon <mmakagon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024-11-05 14:48:02 by pyerima           #+#    #+#             */
-/*   Updated: 2024/11/05 18:00:06 by jcummins         ###   ########.fr       */
+/*   Created: 2024/11/05 14:48:02 by pyerima           #+#    #+#             */
+/*   Updated: 2024/11/18 11:44:35 by mmakagon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,13 +14,13 @@
 
 // Main function to start the server
 int main(int argc, char* argv[]) {
-    if (argc < 2) {
-        std::cerr << "Usage: " << argv[0] << " <port>" << std::endl;
+    if (argc < 3) {
+        std::cerr << "Usage: " << argv[0] << " <port> <password>" << std::endl;
         return 1;
     }
 
     int port = std::atoi(argv[1]);
-    IRCServer server(port);
+    IRCServer server(port, argv[2]);
     server.run();
 
     return 0;

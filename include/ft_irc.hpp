@@ -6,7 +6,7 @@
 /*   By: mmakagon <mmakagon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/04 13:00:32 by pyerima           #+#    #+#             */
-/*   Updated: 2024/11/15 11:30:42 by mmakagon         ###   ########.fr       */
+/*   Updated: 2024/11/18 13:16:27 by mmakagon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,6 +34,6 @@ class Client;
 # include "Client.hpp"
 # include "IRCServer.hpp"
 
-unsigned int	simpleHash(std::string& in_str);
+unsigned int	hashSimple(std::string& in_str);
 
 #endif

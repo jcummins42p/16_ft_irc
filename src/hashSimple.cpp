@@ -1,22 +1,23 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Client.cpp                                         :+:      :+:    :+:   */
+/*   simpleHash.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: mmakagon <mmakagon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/11/05 14:48:02 by pyerima           #+#    #+#             */
-/*   Updated: 2024/11/18 13:42:36 by mmakagon         ###   ########.fr       */
+/*   Created: 2024/11/15 11:29:40 by mmakagon          #+#    #+#             */
+/*   Updated: 2024/11/18 14:51:30 by mmakagon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "Client.hpp"
+#include "ft_irc.hpp"
 
-Client::Client(int fd) :
-	fd(fd),
-	is_autentificated(false) {}
+unsigned int	hashSimple(std::string& in_str) {
+	unsigned int	hashed = 0;
 
-
-Client::~Client( void ) {
-	std::cout << "Reminder that you need to implement Client destructor" << std::endl;
+	for(size_t i = 0; i < in_str.size(); ++i) {
+		hashed += (i * i + in_str.size()) * static_cast<unsigned int>(in_str[i]);
+		in_str[i] = 0;
+	}
+	return (hashed);
 }

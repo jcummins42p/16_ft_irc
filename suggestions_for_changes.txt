@@ -9,22 +9,22 @@ Makefile:
 
 IRCServer.hpp:
 + Change the filename to Server.hpp or change Server.cpp to IRC...
-- We don't have a server password, in the subject:
++ We don't have a server password, in the subject:
 		"Your executable will be run as follows:
 		./ircserv <port> <password>"
 - What's the use of PART command?
 
 Server.cpp:
-- Again, add the password
-- Also, shouldn't the password be hashed? So we don't have am actual password in memory, only an encripted version?
++ Again, add the password
++ Also, shouldn't the password be hashed? So we don't have am actual password in memory, only an encripted version?
 	And then hash what the user passes and compare these encrypted things, for safety, yo know.
-- In NICK, USER and other commands we don't check for an empty input, so the name could be changed for nothing, for example.
++ In NICK, USER and other commands we don't check for an empty input, so the name could be changed for nothing, for example.
 - All channel logic should be in the Channel class, including admin rights checks (you can't kick someone if you're not an operator)
-- In processMessage method - shouldn't we print a message if it wasn't a command?
++ In processMessage method - shouldn't we print a message if it wasn't a command?
 
 Client.hpp:
 - Data should be private. And add getters/setters for what we need to read or change on the go
-- is_operator can't be here, there should be a list of admins in the Channel class
++ is_operator can't be here, there should be a list of admins in the Channel class
 
 Client.cpp:
 - Again, add getters/setters for private data.
