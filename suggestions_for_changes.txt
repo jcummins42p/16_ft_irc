@@ -23,11 +23,13 @@ Server.cpp:
 + In processMessage method - shouldn't we print a message if it wasn't a command?
 
 Client.hpp:
-- Data should be private. And add getters/setters for what we need to read or change on the go
++ Data should be private. And add getters/setters for what we need to read or change on the go
 + is_operator can't be here, there should be a list of admins in the Channel class
+- Channels are still are still public, will get back to it later, after fixing channels themself
 
 Client.cpp:
-- Again, add getters/setters for private data.
++ Again, add getters/setters for private data.
+- Channels are still are still public, will get back to it later, after fixing channels themself
 
 Channel.hpp:
 - Again, data can't be public. So, private section and getters/setters.

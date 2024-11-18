@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ft_irc.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mmakagon <mmakagon@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mmakagon <mmakagon@student.42.com>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/04 13:00:32 by pyerima           #+#    #+#             */
-/*   Updated: 2024/11/18 13:16:27 by mmakagon         ###   ########.fr       */
+/*   Updated: 2024/11/18 18:44:47 by mmakagon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,15 +17,8 @@ class Channel;
 class IRCServer;
 class Client;
 
-# include <iostream>
-# include <string>
-# include <vector>
-# include <map>
 # include <poll.h>
-# include <netinet/in.h>
-# include <arpa/inet.h>
 # include <unistd.h>
-# include <fcntl.h>
 
 # define MAX_CLIENTS 100
 # define BUFFER_SIZE 512

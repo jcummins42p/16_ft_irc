@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   IRCServer.hpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mmakagon <mmakagon@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mmakagon <mmakagon@student.42.com>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 14:48:02 by pyerima           #+#    #+#             */
-/*   Updated: 2024/11/18 13:15:50 by mmakagon         ###   ########.fr       */
+/*   Updated: 2024/11/18 18:43:33 by mmakagon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,16 +17,9 @@
 #include "Channel.hpp"
 
 #include <iostream>
-#include <cstring>
-#include <string>
 #include <map>
-#include <set>
-#include <vector>
 #include <sstream>
-#include <unistd.h>
 #include <arpa/inet.h>
-#include <poll.h>
-#include <stdlib.h>
 
 class IRCServer {
 	public:

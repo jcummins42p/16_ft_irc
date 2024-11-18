@@ -3,17 +3,15 @@
 /*                                                        :::      ::::::::   */
 /*   IRCServer.cpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mmakagon <mmakagon@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mmakagon <mmakagon@student.42.com>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 14:48:02 by pyerima           #+#    #+#             */
-/*   Updated: 2024/11/18 14:48:42 by mmakagon         ###   ########.fr       */
+/*   Updated: 2024/11/18 19:09:46 by mmakagon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_irc.hpp"
 #include "IRCServer.hpp"
-#include "Client.hpp"
-#include "Channel.hpp"
 
 IRCServer::IRCServer(int port, std::string in_pass)
 {
@@ -111,7 +109,7 @@ void IRCServer::handleClient(int client_fd)
 	buffer[bytes_received] = '\0';
 	std::string message(buffer);
 
-	if (!clients[client_fd]->is_autentificated) {
+	if (!clients[client_fd]->getAutentificated()) {
 		if (!message.empty() && message[message.length() - 1] == '\n')
 			message.erase(message.length() - 1);
 		unsigned int in_hashed_pass = hashSimple(message);
@@ -121,7 +119,7 @@ void IRCServer::handleClient(int client_fd)
 			send(client_fd, prompt.c_str(), prompt.size(), 0);
 		}
 		else {
-			clients[client_fd]->is_autentificated = true;
+			clients[client_fd]->setAutentificated();
 			const std::string prompt = "Authorization successful!\n";
 			send(client_fd, prompt.c_str(), prompt.size(), 0);
 		}
@@ -172,8 +170,8 @@ void IRCServer::handleNickCommand(int client_fd, std::istringstream& iss)
 		send(client_fd, prompt.c_str(), prompt.size(), 0);
 	}
 	else {
-		clients[client_fd]->nick = in_nick; // Set the client's nickname
-		std::cout << "Client " << client_fd << " set nickname to " << clients[client_fd]->nick << std::endl;
+		clients[client_fd]->setNick(in_nick); // Set the client's nickname
+		std::cout << "Client " << client_fd << " set nickname to " << clients[client_fd]->getNick() << std::endl;
 	}
 }
 
@@ -187,8 +185,8 @@ void IRCServer::handleUserCommand(int client_fd, std::istringstream& iss)
 		send(client_fd, prompt.c_str(), prompt.size(), 0);
 	}
 	else {
-		clients[client_fd]->user = in_username; // Set the client's username
-		std::cout << "Client " << client_fd << " set username to " << clients[client_fd]->user << std::endl;
+		clients[client_fd]->setUser(in_username); // Set the client's username
+		std::cout << "Client " << client_fd << " set username to " << clients[client_fd]->getUser() << std::endl;
 	}
 }
 
@@ -227,7 +225,7 @@ void IRCServer::handlePartCommand(int client_fd, std::istringstream& iss)
 		channels[channel_name]->part(client_fd);
 		clients[client_fd]->channels.erase(channel_name);
 		send(client_fd, ("Left channel: " + channel_name + "\n").c_str(), 25, 0);
-		channels[channel_name]->sendMessage(clients[client_fd]->nick + " has left the channel.\n", client_fd);
+		channels[channel_name]->sendMessage(clients[client_fd]->getNick() + " has left the channel.\n", client_fd);
 	} else {
 		send(client_fd, "Channel not found.\n", 20, 0);
 	}
@@ -242,7 +240,7 @@ void IRCServer::handlePrivmsgCommand(int client_fd, std::istringstream& iss)
 	std::getline(iss, msg);
 
 	if (channels.find(target) != channels.end()) {
-		channels[target]->sendMessage(clients[client_fd]->nick + ": " + msg + "\n", client_fd);
+		channels[target]->sendMessage(clients[client_fd]->getNick() + ": " + msg + "\n", client_fd);
 	} else {
 		send(client_fd, "Target not found.\n", 18, 0);
 	}
