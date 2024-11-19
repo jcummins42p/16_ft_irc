@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   IRCServer.cpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mmakagon <mmakagon@student.42.com>         +#+  +:+       +#+        */
+/*   By: mmakagon <mmakagon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 14:48:02 by pyerima           #+#    #+#             */
-/*   Updated: 2024/11/19 02:09:52 by mmakagon         ###   ########.fr       */
+/*   Updated: 2024/11/19 12:04:05 by mmakagon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,12 +28,11 @@ IRCServer::IRCServer(int port, std::string in_pass)
 
 IRCServer::~IRCServer( void )
 {
-	//for loop to iterate through the clients map
 	for (std::map<int, Client*>::iterator it = clients.begin(); it != clients.end(); ++it) {
 		close(it->first);
 		delete it->second;
 	}
-	//for loop to iterate through the channels map
+
 	for (std::map<std::string, Channel*>::iterator it = channels.begin(); it != channels.end(); ++it) {
 		delete it->second;
 	}
@@ -90,7 +89,8 @@ void IRCServer::acceptClient(struct pollfd* fds)
 		}
 	}
 }
-//handle messages from a client
+
+
 void IRCServer::handleClient(int client_fd)
 {
 	char buffer[BUFFER_SIZE];
@@ -210,7 +210,7 @@ void IRCServer::handleJoinCommand(int client_fd, std::istringstream& iss)
 		channel = channels[channel_name]; // get existing channel
 	}
 
-	channel->join(client_fd); // add client to the channel
+	channel->joinChannel(*clients[client_fd]); // add client to the channel
 	clients[client_fd]->channels.insert(channel_name); // update clients channel list
 	std::cout << "Client " << client_fd << " joined channel " << channel_name << std::endl;
 }
@@ -222,16 +222,16 @@ void IRCServer::handlePartCommand(int client_fd, std::istringstream& iss)
 	iss >> channel_name;
 
 	if (channels.find(channel_name) != channels.end()) {
-		channels[channel_name]->part(client_fd);
+		channels[channel_name]->leaveChannel(*clients[client_fd]);
 		clients[client_fd]->channels.erase(channel_name);
 		send(client_fd, ("Left channel: " + channel_name + "\n").c_str(), 25, 0);
-		channels[channel_name]->sendMessage(clients[client_fd]->getNick() + " has left the channel.\n", client_fd);
+		channels[channel_name]->channelMessage(clients[client_fd]->getNick() + " has left the channel.\n", *clients[client_fd]);
 	} else {
 		send(client_fd, "Channel not found.\n", 20, 0);
 	}
 }
 
-//the PRIVMSG command
+// Why does PRIVMSG sends a message to some channel???
 void IRCServer::handlePrivmsgCommand(int client_fd, std::istringstream& iss)
 {
 	std::string target;
@@ -240,13 +240,12 @@ void IRCServer::handlePrivmsgCommand(int client_fd, std::istringstream& iss)
 	std::getline(iss, msg);
 
 	if (channels.find(target) != channels.end()) {
-		channels[target]->sendMessage(clients[client_fd]->getNick() + ": " + msg + "\n", client_fd);
+		channels[target]->channelMessage(clients[client_fd]->getNick() + ": " + msg + "\n", client_fd);
 	} else {
 		send(client_fd, "Target not found.\n", 18, 0);
 	}
 }
 
-	//the QUIT command
 void IRCServer::handleQuitCommand(int client_fd)
 {
 	std::cout << "Client " << client_fd << " disconnected." << std::endl;
@@ -270,7 +269,7 @@ void IRCServer::handleTopicCommand(int client_fd, std::istringstream& iss)
 	if (channels.find(channel_name) != channels.end()) {
 		Channel* channel = channels[channel_name]; // get channel
 		channel->setTopic(new_topic); // set the topic
-		channel->sendMessage("TOPIC " + channel_name + " : " + new_topic + "\n", client_fd); // notify clients of the new topic
+		channel->channelMessage("TOPIC " + channel_name + " : " + new_topic + "\n", client_fd); // notify clients of the new topic
 	} else {
 		send(client_fd, "No such channel.\n", 18, 0); // notify client of error
 	}

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Channel.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mmakagon <mmakagon@student.42.com>         +#+  +:+       +#+        */
+/*   By: mmakagon <mmakagon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/04 17:00:44 by mmakagon          #+#    #+#             */
-/*   Updated: 2024/11/19 02:28:53 by mmakagon         ###   ########.fr       */
+/*   Updated: 2024/11/19 11:47:39 by mmakagon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,7 @@ Channel::~Channel(void) {}
 
 /* PRIVATE METHODS */
 
-ssize_t Channel::singleMessage(const Client& client, const std::string message) const {
+ssize_t Channel::internalMessage(const Client& client, const std::string message) const {
 	return (send(client.getFd(), message.c_str(), message.size(), 0));
 }
 
@@ -43,11 +43,11 @@ const std::string&	Channel::getTopic(void) const { return (topic); }
 
 bool	Channel::setTopic(const std::string& in_topic, const Client& admin) {
 	if (topic_admins_only && admins.find(&admin) == admins.end()) {
-		singleMessage(admin, "You don't have admin rights!\n");
+		internalMessage(admin, "You don't have admin rights!\n");
 		return (false);
 	}
 	else if (in_topic.empty()) {
-		singleMessage(admin, "Can't set an empty topic!\n");
+		internalMessage(admin, "Can't set an empty topic!\n");
 		return (false);
 	}
 	else {
@@ -58,11 +58,11 @@ bool	Channel::setTopic(const std::string& in_topic, const Client& admin) {
 
 bool	Channel::setPass(std::string& in_pass, const Client& admin) {
 	if (admins.find(&admin) == admins.end()) {
-		singleMessage(admin, "You don't have admin rights!\n");
+		internalMessage(admin, "You don't have admin rights!\n");
 		return (false);
 	}
 	else if (in_pass.empty()) {
-		singleMessage(admin, "Can't set an empty password!\n");
+		internalMessage(admin, "Can't set an empty password!\n");
 		return (false);
 	}
 	else {
@@ -75,11 +75,11 @@ bool	Channel::setPass(std::string& in_pass, const Client& admin) {
 
 bool	Channel::addClient(const Client& in_client, const Client& admin) {
 	if (admins.find(&admin) == admins.end()) {
-		singleMessage(admin, "You don't have admin rights!\n");
+		internalMessage(admin, "You don't have admin rights!\n");
 		return (false);
 	}
 	else if (clients.size() >= clnts_limit) {
-		singleMessage(admin, "Can't add a client - the channel is full!\n");
+		internalMessage(admin, "Can't add a client - the channel is full!\n");
 		return (false);
 	}
 	else {
@@ -90,11 +90,11 @@ bool	Channel::addClient(const Client& in_client, const Client& admin) {
 
 bool	Channel::addAdmin(const Client& in_client, const Client& admin) {
 	if (admins.find(&admin) == admins.end()) {
-		singleMessage(admin, "You don't have admin rights!\n");
+		internalMessage(admin, "You don't have admin rights!\n");
 		return (false);
 	}
 	else if (clients.find(&in_client) == clients.end()) {
-		singleMessage(admin, "Can't make an admin - the client is not in the channel!\n");
+		internalMessage(admin, "Can't make an admin - the client is not in the channel!\n");
 		return (false);
 	}
 	else {
@@ -105,11 +105,11 @@ bool	Channel::addAdmin(const Client& in_client, const Client& admin) {
 
 bool	Channel::kickClient(const Client& in_client, const Client& admin) {
 	if (admins.find(&admin) == admins.end()) {
-		singleMessage(admin, "You don't have admin rights!\n");
+		internalMessage(admin, "You don't have admin rights!\n");
 		return (false);
 	}
 	else if (clients.find(&in_client) == clients.end()) {
-		singleMessage(admin, "Can't kick - the user is not in the channel!\n");
+		internalMessage(admin, "Can't kick - the user is not in the channel!\n");
 		return (false);
 	}
 	else {
@@ -121,15 +121,15 @@ bool	Channel::kickClient(const Client& in_client, const Client& admin) {
 
 bool	Channel::kickAdmin(const Client& in_client, const Client& admin) {
 	if (admins.find(&admin) == admins.end()) {
-		singleMessage(admin, "You don't have admin rights!\n");
+		internalMessage(admin, "You don't have admin rights!\n");
 		return (false);
 	}
 	else if (clients.find(&in_client) == clients.end()) {
-		singleMessage(admin, "Can't kick - the user is not in the channel!\n");
+		internalMessage(admin, "Can't kick - the user is not in the channel!\n");
 		return (false);
 	}
 	else if (admins.find(&in_client) == admins.end()) {
-		singleMessage(admin, "Can't kick - the user is not an admin!\n");
+		internalMessage(admin, "Can't kick - the user is not an admin!\n");
 		return (false);
 	}
 	else {
@@ -143,11 +143,11 @@ bool	Channel::kickAdmin(const Client& in_client, const Client& admin) {
 
 bool	Channel::joinChannel(const Client& in_client) {
 	if (invite_only) {
-		singleMessage(in_client, "Sorry, the chat is invite-only!\n");
+		internalMessage(in_client, "Sorry, the chat is invite-only!\n");
 		return (false);
 	}
 	else if (clients.size() >= clnts_limit) {
-		singleMessage(in_client, "Sorry, the chat is full!\n");
+		internalMessage(in_client, "Sorry, the chat is full!\n");
 		return (false);
 	}
 	else {
@@ -164,4 +164,12 @@ bool	Channel::leaveChannel(const Client& in_client) {
 	}
 	clients.erase(&in_client);
 	return (true);
+}
+
+/* GROUP MESSAGES */
+
+void	Channel::channelMessage(const std::string message, const Client& sender) const {
+	for (std::set<const Client*>::iterator it = clients.begin(); it != clients.end(); ++it)
+		if (*it != &sender)
+			send((*it)->getFd(), message.c_str(), message.size(), 0);
 }

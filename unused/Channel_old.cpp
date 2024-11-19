@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Channel.cpp                                        :+:      :+:    :+:   */
+/*   Channel_old.cpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mmakagon <mmakagon@student.42.com>         +#+  +:+       +#+        */
+/*   By: mmakagon <mmakagon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 14:48:02 by pyerima           #+#    #+#             */
-/*   Updated: 2024/11/18 18:54:30 by mmakagon         ###   ########.fr       */
+/*   Updated: 2024/11/19 11:44:57 by mmakagon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,7 @@ void Channel::part(int client_fd)
 	clients.erase(client_fd);
 }
 
-void Channel::sendMessage(const std::string& message, int sender_fd)
+void Channel::channelMessage(const std::string& message, int sender_fd)
 {
 	//for loop to iterate through the set of clients
 	for (std::set<int>::iterator it = clients.begin(); it != clients.end(); ++it) {

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Channel.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mmakagon <mmakagon@student.42.com>         +#+  +:+       +#+        */
+/*   By: mmakagon <mmakagon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/04 14:58:10 by mmakagon          #+#    #+#             */
-/*   Updated: 2024/11/19 02:28:53 by mmakagon         ###   ########.fr       */
+/*   Updated: 2024/11/19 11:52:11 by mmakagon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,7 @@ class Channel {
 		bool						invite_only;
 		bool						topic_admins_only;
 
-		ssize_t		singleMessage(const Client& client, const std::string message) const;
+		ssize_t		internalMessage(const Client& client, const std::string message) const;
 
 	public:
 		Channel(const std::string& in_name, const Client& creator);
@@ -53,6 +53,7 @@ class Channel {
 		bool		leaveChannel(const Client& in_client);
 
 		bool		changeMode(const char* const in_mode, const Client& admin);
+		void		channelMessage(const std::string message, const Client& sender) const;
 };
 
 #endif
