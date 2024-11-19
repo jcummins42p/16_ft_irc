@@ -6,7 +6,7 @@
 /*   By: mmakagon <mmakagon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/04 17:00:44 by mmakagon          #+#    #+#             */
-/*   Updated: 2024/11/19 11:47:39 by mmakagon         ###   ########.fr       */
+/*   Updated: 2024/11/19 12:29:55 by mmakagon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,9 +33,11 @@ ssize_t Channel::internalMessage(const Client& client, const std::string message
 	return (send(client.getFd(), message.c_str(), message.size(), 0));
 }
 
+
 /* GETTERS */
 
 const std::string&	Channel::getName(void) const { return (name); }
+
 const std::string&	Channel::getTopic(void) const { return (topic); }
 
 
@@ -70,6 +72,7 @@ bool	Channel::setPass(std::string& in_pass, const Client& admin) {
 		return (true);
 	}
 }
+
 
 /* ADMIN FUNCTIONS */
 

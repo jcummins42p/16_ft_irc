@@ -6,7 +6,7 @@
 /*   By: mmakagon <mmakagon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 14:48:02 by pyerima           #+#    #+#             */
-/*   Updated: 2024/11/19 12:04:05 by mmakagon         ###   ########.fr       */
+/*   Updated: 2024/11/19 12:27:31 by mmakagon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -90,7 +90,6 @@ void IRCServer::acceptClient(struct pollfd* fds)
 	}
 }
 
-
 void IRCServer::handleClient(int client_fd)
 {
 	char buffer[BUFFER_SIZE];
@@ -160,7 +159,6 @@ void IRCServer::processMessage(int client_fd, const std::string& message)
 		std::cout << "Client number " << client_fd << ": " << message;
 }
 
-//the NICK command
 void IRCServer::handleNickCommand(int client_fd, std::istringstream& iss)
 {
 	std::string in_nick;
@@ -175,7 +173,6 @@ void IRCServer::handleNickCommand(int client_fd, std::istringstream& iss)
 	}
 }
 
-//the USER command
 void IRCServer::handleUserCommand(int client_fd, std::istringstream& iss)
 {
 	std::string in_username;
@@ -190,7 +187,6 @@ void IRCServer::handleUserCommand(int client_fd, std::istringstream& iss)
 	}
 }
 
-//the JOIN command
 void IRCServer::handleJoinCommand(int client_fd, std::istringstream& iss)
 {
 	std::string channel_name;
@@ -215,7 +211,6 @@ void IRCServer::handleJoinCommand(int client_fd, std::istringstream& iss)
 	std::cout << "Client " << client_fd << " joined channel " << channel_name << std::endl;
 }
 
-//the PART command
 void IRCServer::handlePartCommand(int client_fd, std::istringstream& iss)
 {
 	std::string channel_name;
@@ -240,7 +235,7 @@ void IRCServer::handlePrivmsgCommand(int client_fd, std::istringstream& iss)
 	std::getline(iss, msg);
 
 	if (channels.find(target) != channels.end()) {
-		channels[target]->channelMessage(clients[client_fd]->getNick() + ": " + msg + "\n", client_fd);
+		channels[target]->channelMessage(clients[client_fd]->getNick() + ": " + msg + "\n", *clients[client_fd]);
 	} else {
 		send(client_fd, "Target not found.\n", 18, 0);
 	}
@@ -253,7 +248,6 @@ void IRCServer::handleQuitCommand(int client_fd)
 	clients.erase(client_fd); // Remove client from the map
 }
 
-	//the TOPIC command
 void IRCServer::handleTopicCommand(int client_fd, std::istringstream& iss)
 {
 	std::string channel_name, new_topic;
@@ -268,14 +262,13 @@ void IRCServer::handleTopicCommand(int client_fd, std::istringstream& iss)
 
 	if (channels.find(channel_name) != channels.end()) {
 		Channel* channel = channels[channel_name]; // get channel
-		channel->setTopic(new_topic); // set the topic
-		channel->channelMessage("TOPIC " + channel_name + " : " + new_topic + "\n", client_fd); // notify clients of the new topic
+		channel->setTopic(new_topic, *clients[client_fd]); // set the topic
+		channel->channelMessage("TOPIC " + channel_name + " : " + new_topic + "\n", *clients[client_fd]); // notify clients of the new topic
 	} else {
 		send(client_fd, "No such channel.\n", 18, 0); // notify client of error
 	}
 }
 
-//the MODE command
 void IRCServer::handleModeCommand(int client_fd, std::istringstream& iss)
 {
 	std::string channel_name, mode;
@@ -284,7 +277,6 @@ void IRCServer::handleModeCommand(int client_fd, std::istringstream& iss)
 	std::cout << "Client " << client_fd << " set mode for channel " << channel_name << " to " << mode << std::endl;
 }
 
-//the KICK command
 void IRCServer::handleKickCommand(int client_fd, std::istringstream& iss) {
 	std::string channel_name, target_nick;
 	iss >> channel_name >> target_nick; // read channel name and target nickname
@@ -292,7 +284,6 @@ void IRCServer::handleKickCommand(int client_fd, std::istringstream& iss) {
 	std::cout << "Client " << client_fd << " kicked " << target_nick << " from channel " << channel_name << std::endl;
 }
 
-//the INVITE command
 void IRCServer::handleInviteCommand(int client_fd, std::istringstream& iss) {
 	std::string target_nick, channel_name;
 	iss >> target_nick >> channel_name; // Read target nickname and channel name

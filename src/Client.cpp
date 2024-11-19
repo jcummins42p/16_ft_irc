@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mmakagon <mmakagon@student.42.com>         +#+  +:+       +#+        */
+/*   By: mmakagon <mmakagon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 14:48:02 by pyerima           #+#    #+#             */
-/*   Updated: 2024/11/18 19:19:52 by mmakagon         ###   ########.fr       */
+/*   Updated: 2024/11/19 12:16:22 by mmakagon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,6 @@ const int&			Client::getFd(void) const { return (fd); }
 const std::string&	Client::getNick(void) const { return nick; }
 const std::string&	Client::getUser(void) const { return user; }
 bool				Client::getAutentificated(void) const { return is_autentificated; }
-
 
 void	Client::setAutentificated(void) { is_autentificated = true; }
 
