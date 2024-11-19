@@ -6,7 +6,7 @@
 /*   By: mmakagon <mmakagon@student.42.com>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 14:48:02 by pyerima           #+#    #+#             */
-/*   Updated: 2024/11/18 19:15:22 by mmakagon         ###   ########.fr       */
+/*   Updated: 2024/11/19 02:09:52 by mmakagon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -120,7 +120,7 @@ void IRCServer::handleClient(int client_fd)
 		}
 		else {
 			clients[client_fd]->setAutentificated();
-			const std::string prompt = "Authorization successful!\n";
+			const std::string prompt = "Autentification successful!\n";
 			send(client_fd, prompt.c_str(), prompt.size(), 0);
 		}
 	}
@@ -204,7 +204,7 @@ void IRCServer::handleJoinCommand(int client_fd, std::istringstream& iss)
 	}
 	// check if the channel exists
 	if (channels.find(channel_name) == channels.end()) {
-		channel = new Channel(channel_name); // create a new channel if it doesn't exist
+		channel = new Channel(channel_name, *clients[client_fd]); // create a new channel if it doesn't exist
 		channels[channel_name] = channel; // add channel to the map
 	} else {
 		channel = channels[channel_name]; // get existing channel

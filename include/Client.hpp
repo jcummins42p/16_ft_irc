@@ -6,7 +6,7 @@
 /*   By: mmakagon <mmakagon@student.42.com>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 14:48:02 by pyerima           #+#    #+#             */
-/*   Updated: 2024/11/18 19:18:28 by mmakagon         ###   ########.fr       */
+/*   Updated: 2024/11/18 22:05:39 by mmakagon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,7 @@
 class Client {
 public:
 	explicit Client(int fd);
-	~Client( void );
+	~Client(void);
 
 	const int&			getFd(void) const;
 	const std::string&	getNick(void) const;
