@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mmakagon <mmakagon@student.42.com>         +#+  +:+       +#+        */
+/*   By: mmakagon <mmakagon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 14:48:02 by pyerima           #+#    #+#             */
-/*   Updated: 2024/11/18 22:05:39 by mmakagon         ###   ########.fr       */
+/*   Updated: 2024/11/19 13:28:12 by mmakagon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,9 +25,9 @@ public:
 	const int&			getFd(void) const;
 	const std::string&	getNick(void) const;
 	const std::string&	getUser(void) const;
-	bool				getAutentificated(void) const;
+	bool				getAuthentificated(void) const;
 
-	void				setAutentificated(void);
+	void				setAuthentificated(void);
 	void				setNick(const std::string& in_nick);
 	void				setUser(const std::string& in_username);
 
@@ -36,7 +36,7 @@ private:
 	const int				fd;
 	std::string				nick;
 	std::string				user;
-	bool					is_autentificated;
+	bool					is_Authentificated;
 
 };
 

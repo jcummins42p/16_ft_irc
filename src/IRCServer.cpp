@@ -6,7 +6,7 @@
 /*   By: mmakagon <mmakagon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 14:48:02 by pyerima           #+#    #+#             */
-/*   Updated: 2024/11/19 12:27:31 by mmakagon         ###   ########.fr       */
+/*   Updated: 2024/11/19 13:28:12 by mmakagon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -108,7 +108,7 @@ void IRCServer::handleClient(int client_fd)
 	buffer[bytes_received] = '\0';
 	std::string message(buffer);
 
-	if (!clients[client_fd]->getAutentificated()) {
+	if (!clients[client_fd]->getAuthentificated()) {
 		if (!message.empty() && message[message.length() - 1] == '\n')
 			message.erase(message.length() - 1);
 		unsigned int in_hashed_pass = hashSimple(message);
@@ -118,7 +118,7 @@ void IRCServer::handleClient(int client_fd)
 			send(client_fd, prompt.c_str(), prompt.size(), 0);
 		}
 		else {
-			clients[client_fd]->setAutentificated();
+			clients[client_fd]->setAuthentificated();
 			const std::string prompt = "Autentification successful!\n";
 			send(client_fd, prompt.c_str(), prompt.size(), 0);
 		}
