@@ -6,7 +6,7 @@
 #    By: mmakagon <mmakagon@student.42.com>         +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/04 14:17:14 by jcummins          #+#    #+#              #
-#    Updated: 2024/11/18 18:21:28 by mmakagon         ###   ########.fr        #
+#    Updated: 2024/11/26 17:26:36 by jcummins         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -15,13 +15,15 @@ NAME = ircserver
 
 SRC_DIR = src
 OBJ_DIR = obj
+INC_DIR = include
 
-SRCS = $(shell find $(SRC_DIR) -name '*.cpp')
-OBJS = $(SRCS:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
-INCLUDES = -I./include
+SRCS = main.cpp Channel.cpp Client.cpp hashSimple.cpp IRCServer.cpp simpleHash.cpp
+OBJS = $(addprefix $(OBJ_DIR)/, $(SRCS:.cpp=.o))
+HEADS = ft_irc.hpp Channel.hpp Client.hpp IRCServer.hpp
 
 CXX = c++
-CXXFLAGS = -Wall -Wextra -Werror -Wunused-result -pedantic -std=c++98 $(INCLUDES) -fsanitize=address
+CXXFLAGS = -Wall -Wextra -Werror -Wunused-result -pedantic -std=c++98 \
+		   -fsanitize=address -Iinclude
 
 all: $(NAME)
 
@@ -29,7 +31,7 @@ $(NAME): $(OBJS)
 	@echo "✅ Linking object files into executable $@:"
 	@$(CXX) $(CXXFLAGS) $^ -o $@
 
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp $(addprefix $(INC_DIR)/, $(HEADS))
 	@echo "✅ Compiling object file $@ from source file $<"
 	@mkdir -p $(@D)
 	@$(CXX) $(CXXFLAGS) -c $< -o $@
