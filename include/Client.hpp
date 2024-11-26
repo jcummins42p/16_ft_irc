@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: pyerima <pyerima@student.42.fr>            #+#  +:+       +#+        */
+/*   By: mmakagon <mmakagon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024-11-05 14:48:02 by pyerima           #+#    #+#             */
-/*   Updated: 2024/11/05 18:29:54 by jcummins         ###   ########.fr       */
+/*   Created: 2024/11/05 14:48:02 by pyerima           #+#    #+#             */
+/*   Updated: 2024/11/19 13:28:12 by mmakagon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,26 +15,29 @@
 
 #include <iostream>
 #include <cstring>
-#include <string>
-#include <map>
 #include <set>
-#include <vector>
-#include <sstream>
-#include <unistd.h>
-#include <arpa/inet.h>
-#include <poll.h>
-#include <stdlib.h>
 
 class Client {
 public:
-    Client(int fd);
-	~Client( void );
+	explicit Client(int fd);
+	~Client(void);
 
-    int fd;
-    std::string nick;
-    std::string user;
-    std::set<std::string> channels;
-    bool is_operator;
+	const int&			getFd(void) const;
+	const std::string&	getNick(void) const;
+	const std::string&	getUser(void) const;
+	bool				getAuthentificated(void) const;
+
+	void				setAuthentificated(void);
+	void				setNick(const std::string& in_nick);
+	void				setUser(const std::string& in_username);
+
+	std::set<std::string>	channels;
+private:
+	const int				fd;
+	std::string				nick;
+	std::string				user;
+	bool					is_Authentificated;
+
 };
 
 #endif
