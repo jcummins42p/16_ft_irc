@@ -6,7 +6,7 @@
 /*   By: mmakagon <mmakagon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/04 13:00:32 by pyerima           #+#    #+#             */
-/*   Updated: 2024/11/19 10:56:54 by mmakagon         ###   ########.fr       */
+/*   Updated: 2024/11/26 17:42:01 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 # define IRCSERV_HPP
 
 class Channel;
-class IRCServer;
+class Server;
 class Client;
 
 # include <poll.h>
@@ -26,7 +26,7 @@ class Client;
 
 # include "Channel.hpp"
 # include "Client.hpp"
-# include "IRCServer.hpp"
+# include "Server.hpp"
 
 unsigned int	hashSimple(std::string& in_str);
 

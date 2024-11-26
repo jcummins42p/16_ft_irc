@@ -6,7 +6,7 @@
 /*   By: mmakagon <mmakagon@student.42.com>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 14:48:02 by pyerima           #+#    #+#             */
-/*   Updated: 2024/11/18 18:43:33 by mmakagon         ###   ########.fr       */
+/*   Updated: 2024/11/26 17:42:12 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,10 +21,10 @@
 #include <sstream>
 #include <arpa/inet.h>
 
-class IRCServer {
+class Server {
 	public:
-		IRCServer(int port, std::string in_pass);
-		~IRCServer();
+		Server(int port, std::string in_pass);
+		~Server();
 		void run();
 
 	private:

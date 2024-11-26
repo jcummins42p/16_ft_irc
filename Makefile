@@ -6,7 +6,7 @@
 #    By: mmakagon <mmakagon@student.42.com>         +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/04 14:17:14 by jcummins          #+#    #+#              #
-#    Updated: 2024/11/26 17:26:36 by jcummins         ###   ########.fr        #
+#    Updated: 2024/11/26 17:42:58 by jcummins         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -17,9 +17,9 @@ SRC_DIR = src
 OBJ_DIR = obj
 INC_DIR = include
 
-SRCS = main.cpp Channel.cpp Client.cpp hashSimple.cpp IRCServer.cpp simpleHash.cpp
+SRCS = main.cpp Channel.cpp Client.cpp hashSimple.cpp Server.cpp simpleHash.cpp
 OBJS = $(addprefix $(OBJ_DIR)/, $(SRCS:.cpp=.o))
-HEADS = ft_irc.hpp Channel.hpp Client.hpp IRCServer.hpp
+HEADS = ft_irc.hpp Channel.hpp Client.hpp Server.hpp
 
 CXX = c++
 CXXFLAGS = -Wall -Wextra -Werror -Wunused-result -pedantic -std=c++98 \

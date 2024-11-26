@@ -6,14 +6,14 @@
 /*   By: mmakagon <mmakagon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 14:48:02 by pyerima           #+#    #+#             */
-/*   Updated: 2024/11/19 13:28:12 by mmakagon         ###   ########.fr       */
+/*   Updated: 2024/11/26 17:41:13 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_irc.hpp"
-#include "IRCServer.hpp"
+#include "Server.hpp"
 
-IRCServer::IRCServer(int port, std::string in_pass)
+Server::Server(int port, std::string in_pass)
 {
 	server_fd = socket(AF_INET, SOCK_STREAM, 0);
 	struct sockaddr_in server_addr;
@@ -26,7 +26,7 @@ IRCServer::IRCServer(int port, std::string in_pass)
 	listen(server_fd, 5);
 }
 
-IRCServer::~IRCServer( void )
+Server::~Server( void )
 {
 	for (std::map<int, Client*>::iterator it = clients.begin(); it != clients.end(); ++it) {
 		close(it->first);
@@ -39,7 +39,7 @@ IRCServer::~IRCServer( void )
 	close(server_fd);
 }
 
-void IRCServer::run()
+void Server::run()
 {
 	struct pollfd fds[MAX_CLIENTS + 1];
 	fds[0].fd = server_fd;
@@ -66,7 +66,7 @@ void IRCServer::run()
 }
 
 //	private //
-void IRCServer::acceptClient(struct pollfd* fds)
+void Server::acceptClient(struct pollfd* fds)
 {
 	int client_fd = accept(server_fd, NULL, NULL);
 	if (client_fd < 0)
@@ -90,7 +90,7 @@ void IRCServer::acceptClient(struct pollfd* fds)
 	}
 }
 
-void IRCServer::handleClient(int client_fd)
+void Server::handleClient(int client_fd)
 {
 	char buffer[BUFFER_SIZE];
 	ssize_t bytes_received = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
@@ -127,7 +127,7 @@ void IRCServer::handleClient(int client_fd)
 		processMessage(client_fd, message);
 }
 
-void IRCServer::processMessage(int client_fd, const std::string& message)
+void Server::processMessage(int client_fd, const std::string& message)
 {
 	std::istringstream iss(message);
 	std::string command;
@@ -159,7 +159,7 @@ void IRCServer::processMessage(int client_fd, const std::string& message)
 		std::cout << "Client number " << client_fd << ": " << message;
 }
 
-void IRCServer::handleNickCommand(int client_fd, std::istringstream& iss)
+void Server::handleNickCommand(int client_fd, std::istringstream& iss)
 {
 	std::string in_nick;
 	iss >> in_nick; // Read the nickname from the stream
@@ -173,7 +173,7 @@ void IRCServer::handleNickCommand(int client_fd, std::istringstream& iss)
 	}
 }
 
-void IRCServer::handleUserCommand(int client_fd, std::istringstream& iss)
+void Server::handleUserCommand(int client_fd, std::istringstream& iss)
 {
 	std::string in_username;
 	iss >> in_username; // Read the username from the stream
@@ -187,7 +187,7 @@ void IRCServer::handleUserCommand(int client_fd, std::istringstream& iss)
 	}
 }
 
-void IRCServer::handleJoinCommand(int client_fd, std::istringstream& iss)
+void Server::handleJoinCommand(int client_fd, std::istringstream& iss)
 {
 	std::string channel_name;
 	iss >> channel_name; // read the channel name from the stream
@@ -211,7 +211,7 @@ void IRCServer::handleJoinCommand(int client_fd, std::istringstream& iss)
 	std::cout << "Client " << client_fd << " joined channel " << channel_name << std::endl;
 }
 
-void IRCServer::handlePartCommand(int client_fd, std::istringstream& iss)
+void Server::handlePartCommand(int client_fd, std::istringstream& iss)
 {
 	std::string channel_name;
 	iss >> channel_name;
@@ -227,7 +227,7 @@ void IRCServer::handlePartCommand(int client_fd, std::istringstream& iss)
 }
 
 // Why does PRIVMSG sends a message to some channel???
-void IRCServer::handlePrivmsgCommand(int client_fd, std::istringstream& iss)
+void Server::handlePrivmsgCommand(int client_fd, std::istringstream& iss)
 {
 	std::string target;
 	std::string msg;
@@ -241,14 +241,14 @@ void IRCServer::handlePrivmsgCommand(int client_fd, std::istringstream& iss)
 	}
 }
 
-void IRCServer::handleQuitCommand(int client_fd)
+void Server::handleQuitCommand(int client_fd)
 {
 	std::cout << "Client " << client_fd << " disconnected." << std::endl;
 	close(client_fd); // Close the client's socket
 	clients.erase(client_fd); // Remove client from the map
 }
 
-void IRCServer::handleTopicCommand(int client_fd, std::istringstream& iss)
+void Server::handleTopicCommand(int client_fd, std::istringstream& iss)
 {
 	std::string channel_name, new_topic;
 	iss >> channel_name; // read channel name
@@ -269,7 +269,7 @@ void IRCServer::handleTopicCommand(int client_fd, std::istringstream& iss)
 	}
 }
 
-void IRCServer::handleModeCommand(int client_fd, std::istringstream& iss)
+void Server::handleModeCommand(int client_fd, std::istringstream& iss)
 {
 	std::string channel_name, mode;
 	iss >> channel_name >> mode; // read channel name and mode
@@ -277,14 +277,14 @@ void IRCServer::handleModeCommand(int client_fd, std::istringstream& iss)
 	std::cout << "Client " << client_fd << " set mode for channel " << channel_name << " to " << mode << std::endl;
 }
 
-void IRCServer::handleKickCommand(int client_fd, std::istringstream& iss) {
+void Server::handleKickCommand(int client_fd, std::istringstream& iss) {
 	std::string channel_name, target_nick;
 	iss >> channel_name >> target_nick; // read channel name and target nickname
 	//
 	std::cout << "Client " << client_fd << " kicked " << target_nick << " from channel " << channel_name << std::endl;
 }
 
-void IRCServer::handleInviteCommand(int client_fd, std::istringstream& iss) {
+void Server::handleInviteCommand(int client_fd, std::istringstream& iss) {
 	std::string target_nick, channel_name;
 	iss >> target_nick >> channel_name; // Read target nickname and channel name
 	// Simplified handling
