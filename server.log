@@ -1,0 +1,88 @@
+[2024-11-27 15:09:38] [INFO] Server initialized on port 2222
+[2024-11-27 15:09:38] [INFO] Server is running. Waiting for connections...
+[2024-11-27 15:29:29] [INFO] Client connected: FD 5
+[2024-11-27 15:29:32] [INFO] Received message from FD 5: 1234
+
+[2024-11-27 15:29:32] [INFO] Client authenticated: FD 5
+[2024-11-27 15:30:30] [INFO] Received message from FD 5: NICK penny
+
+[2024-11-27 15:30:40] [INFO] Received message from FD 5: USER pint
+
+[2024-11-27 15:30:59] [INFO] Received message from FD 5: JOIN #channel
+
+[2024-11-27 15:31:38] [INFO] Client connected: FD 6
+[2024-11-27 15:31:41] [INFO] Received message from FD 6: 1234
+
+[2024-11-27 15:31:41] [INFO] Client authenticated: FD 6
+[2024-11-27 15:31:47] [INFO] Received message from FD 6: NICK jay
+
+[2024-11-27 15:31:55] [INFO] Received message from FD 6: USER jes
+
+[2024-11-27 15:32:16] [INFO] Received message from FD 6: JOIN #channel
+
+[2024-11-27 15:33:07] [INFO] Received message from FD 5: PRIVMSG #channel :hello
+
+[2024-11-27 18:01:52] [INFO] Server initialized on port 2222
+[2024-11-27 18:01:52] [INFO] Server is running. Waiting for connections...
+[2024-11-27 18:02:10] [INFO] Client connected: FD 5
+[2024-11-27 18:02:13] [INFO] Received message from FD 5: 1234
+
+[2024-11-27 18:02:13] [INFO] Client authenticated: FD 5
+[2024-11-27 18:02:39] [INFO] Received message from FD 5: NICK pen
+
+[2024-11-27 18:02:47] [INFO] Received message from FD 5: USER penny
+
+[2024-11-27 18:03:57] [INFO] Client connected: FD 6
+[2024-11-27 18:03:59] [INFO] Received message from FD 6: 1234
+
+[2024-11-27 18:03:59] [INFO] Client authenticated: FD 6
+[2024-11-27 18:04:06] [INFO] Received message from FD 6: NICK jay
+
+[2024-11-27 18:04:14] [INFO] Received message from FD 6: USER jaya
+
+[2024-11-27 18:04:46] [INFO] Received message from FD 5: JOIN #group
+
+[2024-11-27 18:05:32] [INFO] Received message from FD 5: INVITE jay #group
+
+[2024-11-27 18:05:48] [INFO] Received message from FD 6: hello
+
+[2024-11-27 18:05:48] [INFO] Unhandled message from FD 6: hello
+
+[2024-11-27 18:06:32] [INFO] Client connected: FD 7
+[2024-11-27 18:06:35] [INFO] Received message from FD 7: 1234
+
+[2024-11-27 18:06:35] [INFO] Client authenticated: FD 7
+[2024-11-27 18:07:48] [INFO] Received message from FD 5: PRIVMSG #group :hey all
+
+[2024-11-27 18:08:20] [INFO] Received message from FD 6: JOIN #group
+
+[2024-11-27 18:08:50] [INFO] Received message from FD 5: PRIVMSG #group :hey all
+
+[2024-11-27 18:09:10] [INFO] Received message from FD 6: hey
+
+[2024-11-27 18:09:10] [INFO] Unhandled message from FD 6: hey
+
+[2024-11-27 18:09:39] [INFO] Received message from FD 6: PRIVMSG pen :hey
+
+[2024-11-27 18:09:56] [INFO] Received message from FD 6: PRVMSG #pen :hey
+
+[2024-11-27 18:09:56] [INFO] Unhandled message from FD 6: PRVMSG #pen :hey
+
+[2024-11-27 18:10:47] [INFO] Received message from FD 6: PRIVMSG #group :hey
+
+[2024-11-27 18:11:05] [INFO] Received message from FD 7: NICK john
+
+[2024-11-27 18:11:13] [INFO] Received message from FD 7: USER johnny
+
+[2024-11-27 18:11:28] [INFO] Received message from FD 7: JOIN #group
+
+[2024-11-27 18:12:29] [INFO] Received message from FD 5: PRIVMSG #group :hello new
+
+[2024-11-27 18:12:59] [INFO] Received message from FD 5: KICK john
+
+[2024-11-27 18:13:26] [INFO] Received message from FD 5: PRIVMSG #group :hey
+
+[2024-11-27 18:14:31] [INFO] Received message from FD 6: KICK #group john
+
+[2024-11-27 18:15:06] [INFO] Received message from FD 5: PRIVMSG #group :hello
+

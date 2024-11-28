@@ -1,162 +1,168 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   IRCServer.cpp                                      :+:      :+:    :+:   */
+/*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mmakagon <mmakagon@student.42.fr>          +#+  +:+       +#+        */
+/*   By: pyerima <pyerima@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 14:48:02 by pyerima           #+#    #+#             */
-/*   Updated: 2024/11/26 17:41:13 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/11/27 15:27:11 by pyerima          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "ft_irc.hpp"
 #include "Server.hpp"
+#include <arpa/inet.h>
+#include <ctime> // For time functions
 
-Server::Server(int port, std::string in_pass)
-{
-	server_fd = socket(AF_INET, SOCK_STREAM, 0);
-	struct sockaddr_in server_addr;
-	server_addr.sin_family = AF_INET;
-	server_addr.sin_addr.s_addr = INADDR_ANY;
-	server_addr.sin_port = htons(port);
-	hashed_pass = hashSimple(in_pass);
+Server::Server(int port, const std::string& in_pass) {
+    server_fd = socket(AF_INET, SOCK_STREAM, 0);
+    struct sockaddr_in server_addr;
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_addr.s_addr = INADDR_ANY;
+    server_addr.sin_port = htons(port);
+    hashed_pass = hashSimple(in_pass);
 
-	bind(server_fd, (struct sockaddr *)&server_addr, sizeof(server_addr));
-	listen(server_fd, 5);
+    bind(server_fd, (struct sockaddr *)&server_addr, sizeof(server_addr));
+    listen(server_fd, 5);
+
+    // Open log file
+    logFile.open("server.log", std::ios::app);
+    logEvent("INFO", "Server initialized on port " + intToString(port));
 }
 
-Server::~Server( void )
-{
-	for (std::map<int, Client*>::iterator it = clients.begin(); it != clients.end(); ++it) {
-		close(it->first);
-		delete it->second;
-	}
 
-	for (std::map<std::string, Channel*>::iterator it = channels.begin(); it != channels.end(); ++it) {
-		delete it->second;
-	}
-	close(server_fd);
+
+Server::~Server(void) {
+    for (std::map<int, Client*>::iterator it = clients.begin(); it != clients.end(); ++it) {
+        close(it->first);
+        delete it->second;
+    }
+
+    for (std::map<std::string, Channel*>::iterator it = channels.begin(); it != channels.end(); ++it) {
+        delete it->second;
+    }
+    close(server_fd);
+
+    logEvent("INFO", "Server shutting down.");
+    if (logFile.is_open()) {
+        logFile.close();
+    }
 }
 
-void Server::run()
-{
-	struct pollfd fds[MAX_CLIENTS + 1];
-	fds[0].fd = server_fd;
-	fds[0].events = POLLIN;
+void Server::run() {
+    struct pollfd fds[MAX_CLIENTS + 1];
+    fds[0].fd = server_fd;
+    fds[0].events = POLLIN;
 
-	for (int i = 1; i <= MAX_CLIENTS; i++) {
-		fds[i].fd = -1;
-	}
+    for (int i = 1; i <= MAX_CLIENTS; i++) {
+        fds[i].fd = -1;
+    }
 
-	while (true) {
-		int ret = poll(fds, MAX_CLIENTS + 1, -1);
-		(void)ret;
-		poll(fds, MAX_CLIENTS + 1, -1);
-		for (int i = 0; i <= MAX_CLIENTS; i++) {
-			if (fds[i].revents & POLLIN) {
-				if (fds[i].fd == server_fd) {
-					acceptClient(fds);
-				} else {
-					handleClient(fds[i].fd);
-				}
-			}
-		}
-	}
+    logEvent("INFO", "Server is running. Waiting for connections...");
+    while (true) {
+        int ret = poll(fds, MAX_CLIENTS + 1, -1);
+        (void)ret; // To suppress unused variable warning
+        for (int i = 0; i <= MAX_CLIENTS; i++) {
+            if (fds[i].revents & POLLIN) {
+                if (fds[i].fd == server_fd) {
+                    acceptClient(fds);
+                } else {
+                    handleClient(fds[i].fd);
+                }
+            }
+        }
+    }
 }
 
-//	private //
-void Server::acceptClient(struct pollfd* fds)
-{
-	int client_fd = accept(server_fd, NULL, NULL);
-	if (client_fd < 0)
-	{
-		std::cerr << "Failed to accept client" << std::endl;
-		return;
-	}
+void Server::acceptClient(struct pollfd* fds) {
+    int client_fd = accept(server_fd, NULL, NULL);
+    if (client_fd < 0) {
+        logEvent("ERROR", "Failed to accept client.");
+        return;
+    }
 
-	std::cout << "Client connected: " << client_fd << std::endl;
-	clients[client_fd] = new Client(client_fd);
-	const std::string prompt = "Please enter the password: ";
+    logEvent("INFO", "Client connected: FD " + intToString(client_fd));
+    clients[client_fd] = new Client(client_fd);
+    const std::string prompt = "Please enter the password: ";
     send(client_fd, prompt.c_str(), prompt.size(), 0);
 
-	// add new client to poll array
-	for (int i = 1; i <= MAX_CLIENTS; i++) {
-		if (fds[i].fd == -1) {
-			fds[i].fd = client_fd;
-			fds[i].events = POLLIN;
-			break;
-		}
-	}
+    for (int i = 1; i <= MAX_CLIENTS; i++) {
+        if (fds[i].fd == -1) {
+            fds[i].fd = client_fd;
+            fds[i].events = POLLIN;
+            break;
+        }
+    }
 }
 
-void Server::handleClient(int client_fd)
-{
-	char buffer[BUFFER_SIZE];
-	ssize_t bytes_received = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
-	if (bytes_received <= 0) {
-		if (bytes_received == 0) {
-			std::cout << "Client disconnected: " << client_fd << std::endl;
-		} else {
-			std::cerr << "Receive error on client: " << client_fd << std::endl;
-		}
-		close(client_fd);
-		clients.erase(client_fd);
-		return;
-	}
+void Server::handleClient(int client_fd) {
+    char buffer[BUFFER_SIZE];
+    ssize_t bytes_received = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
+    if (bytes_received <= 0) {
+        if (bytes_received == 0) {
+            logEvent("INFO", "Client disconnected: FD " + intToString(client_fd));
+        } else {
+            logEvent("ERROR", "Receive error on client: FD " + intToString(client_fd));
+        }
+        close(client_fd);
+        clients.erase(client_fd);
+        return;
+    }
 
-	buffer[bytes_received] = '\0';
-	std::string message(buffer);
+    buffer[bytes_received] = '\0';
+    std::string message(buffer);
+    logEvent("INFO", "Received message from FD " + intToString(client_fd) + ": " + message);
 
-	if (!clients[client_fd]->getAuthentificated()) {
-		if (!message.empty() && message[message.length() - 1] == '\n')
-			message.erase(message.length() - 1);
-		unsigned int in_hashed_pass = hashSimple(message);
+    if (!clients[client_fd]->getAuthentificated()) {
+        if (!message.empty() && message[message.length() - 1] == '\n')
+            message.erase(message.length() - 1);
+        unsigned int in_hashed_pass = hashSimple(message);
 
-		if (in_hashed_pass != this->hashed_pass) {
-			const std::string prompt = "Wrong password, try again: ";
-			send(client_fd, prompt.c_str(), prompt.size(), 0);
-		}
-		else {
-			clients[client_fd]->setAuthentificated();
-			const std::string prompt = "Autentification successful!\n";
-			send(client_fd, prompt.c_str(), prompt.size(), 0);
-		}
-	}
-	else
-		processMessage(client_fd, message);
+        if (in_hashed_pass != this->hashed_pass) {
+            const std::string prompt = "Wrong password, try again: ";
+            send(client_fd, prompt.c_str(), prompt.size(), 0);
+            logEvent("WARNING", "Authentication failed for FD " + intToString(client_fd));
+        } else {
+            clients[client_fd]->setAuthentificated();
+            const std::string prompt = "Authentication successful!\n";
+            send(client_fd, prompt.c_str(), prompt.size(), 0);
+            logEvent("INFO", "Client authenticated: FD " + intToString(client_fd));
+        }
+    } else {
+        processMessage(client_fd, message);
+    }
 }
 
-void Server::processMessage(int client_fd, const std::string& message)
-{
-	std::istringstream iss(message);
-	std::string command;
-	iss >> command;
+void Server::processMessage(int client_fd, const std::string& message) {
+    std::istringstream iss(message);
+    std::string command;
+    iss >> command;
 
-	if (command == "NICK") {
-		handleNickCommand(client_fd, iss);
-	} else if (command == "USER") {
-		handleUserCommand(client_fd, iss);
-	} else if (command == "JOIN") {
-		handleJoinCommand(client_fd, iss);
-	} else if (command == "PART") {
-		handlePartCommand(client_fd, iss);
-	} else if (command == "PRIVMSG") {
-		handlePrivmsgCommand(client_fd, iss);
-	} else if (command == "QUIT") {
-		handleQuitCommand(client_fd);
-	} else if (command == "PING") {
-		send(client_fd, "PONG :ping\n", 12, 0);
-	} else if (command == "TOPIC") {
-		handleTopicCommand(client_fd, iss);
-	} else if (command == "MODE") {
-		handleModeCommand(client_fd, iss);
-	} else if (command == "KICK") {
-		handleKickCommand(client_fd, iss);
-	} else if (command == "INVITE") {
-		handleInviteCommand(client_fd, iss);
-	} else
-		std::cout << "Client number " << client_fd << ": " << message;
+    if (command == "NICK") {
+        handleNickCommand(client_fd, iss);
+    } else if (command == "USER") {
+        handleUserCommand(client_fd, iss);
+    } else if (command == "JOIN") {
+        handleJoinCommand(client_fd, iss);
+    } else if (command == "PART") {
+        handlePartCommand(client_fd, iss);
+    } else if (command == "PRIVMSG") {
+        handlePrivmsgCommand(client_fd, iss);
+    } else if (command == "QUIT") {
+        handleQuitCommand(client_fd);
+    } else if (command == "PING") {
+        send(client_fd, "PONG :ping\n", 12, 0);
+    } else if (command == "TOPIC") {
+        handleTopicCommand(client_fd, iss);
+    } else if (command == "MODE") {
+        handleModeCommand(client_fd, iss);
+    } else if (command == "KICK") {
+        handleKickCommand(client_fd, iss);
+    } else if (command == "INVITE") {
+        handleInviteCommand(client_fd, iss);
+    } else {
+        logEvent("INFO", "Unhandled message from FD " + intToString(client_fd) + ": " + message);
+    }
 }
 
 void Server::handleNickCommand(int client_fd, std::istringstream& iss)
@@ -289,4 +295,29 @@ void Server::handleInviteCommand(int client_fd, std::istringstream& iss) {
 	iss >> target_nick >> channel_name; // Read target nickname and channel name
 	// Simplified handling
 	std::cout << "Client " << client_fd << " invited " << target_nick << " to channel " << channel_name << std::endl;
+}
+
+// Centralized logging function
+void Server::logEvent(const std::string& level, const std::string& message) {
+    time_t now = time(0);
+    struct tm* localTime = localtime(&now);
+
+    char buf[20];
+    strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", localTime);
+
+    std::string logMessage = "[" + std::string(buf) + "] [" + level + "] " + message;
+
+    // Print to terminal
+    std::cout << logMessage << std::endl;
+
+    // Write to log file
+    if (logFile.is_open()) {
+        logFile << logMessage << std::endl;
+    }
+}
+
+std::string Server::intToString(int number) {
+    std::ostringstream oss;
+    oss << number;
+    return oss.str();
 }

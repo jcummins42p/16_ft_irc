@@ -1,51 +1,61 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   IRCServer.hpp                                      :+:      :+:    :+:   */
+/*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mmakagon <mmakagon@student.42.com>         +#+  +:+       +#+        */
+/*   By: pyerima <pyerima@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 14:48:02 by pyerima           #+#    #+#             */
-/*   Updated: 2024/11/26 17:42:12 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/11/27 14:41:51 by pyerima          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef IRCSERVER_HPP
-# define IRCSERVER_HPP
+#ifndef SERVER_HPP
+#define SERVER_HPP
 
+#include <map>
+#include <string>
+#include <sstream>
+#include <fstream>
+#include <vector>
+#include <poll.h>
 #include "Client.hpp"
 #include "Channel.hpp"
+#include "ft_irc.hpp" // Ensure it includes the MAX_CLIENTS definition
 
-#include <iostream>
-#include <map>
-#include <sstream>
-#include <arpa/inet.h>
+#define BUFFER_SIZE 512 // Keep this here unless it's also defined elsewhere
 
 class Server {
-	public:
-		Server(int port, std::string in_pass);
-		~Server();
-		void run();
+private:
+    int server_fd;
+    unsigned int hashed_pass;
+    std::map<int, Client*> clients;
+    std::map<std::string, Channel*> channels;
+    std::ofstream logFile;
 
-	private:
-		int								server_fd;
-		std::map<int, Client*>			clients;
-		std::map<std::string, Channel*>	channels;
-		unsigned int					hashed_pass;
+    void acceptClient(struct pollfd* fds);
+    void handleClient(int client_fd);
+    void processMessage(int client_fd, const std::string& message);
 
-		void acceptClient(struct pollfd* fds);
-		void handleClient(int client_fd);
-		void processMessage(int client_fd, const std::string& message);
-		void handleNickCommand(int client_fd, std::istringstream& iss);
-		void handleUserCommand(int client_fd, std::istringstream& iss);
-		void handleJoinCommand(int client_fd, std::istringstream& iss);
-		void handlePartCommand(int client_fd, std::istringstream& iss); // what's the use?
-		void handlePrivmsgCommand(int client_fd, std::istringstream& iss);
-		void handleQuitCommand(int client_fd);
-		void handleTopicCommand(int client_fd, std::istringstream& iss);
-		void handleModeCommand(int client_fd, std::istringstream& iss);
-		void handleKickCommand(int client_fd, std::istringstream& iss);
-		void handleInviteCommand(int client_fd, std::istringstream& iss);
+    // Command handlers
+    void handleNickCommand(int client_fd, std::istringstream& iss);
+    void handleUserCommand(int client_fd, std::istringstream& iss);
+    void handleJoinCommand(int client_fd, std::istringstream& iss);
+    void handlePartCommand(int client_fd, std::istringstream& iss);
+    void handlePrivmsgCommand(int client_fd, std::istringstream& iss);
+    void handleQuitCommand(int client_fd);
+    void handleTopicCommand(int client_fd, std::istringstream& iss);
+    void handleModeCommand(int client_fd, std::istringstream& iss);
+    void handleKickCommand(int client_fd, std::istringstream& iss);
+    void handleInviteCommand(int client_fd, std::istringstream& iss);
+
+    void logEvent(const std::string& level, const std::string& message);
+    std::string intToString(int number);
+
+public:
+    Server(int port, const std::string& in_pass);
+    ~Server(void);
+    void run();
 };
 
 #endif
