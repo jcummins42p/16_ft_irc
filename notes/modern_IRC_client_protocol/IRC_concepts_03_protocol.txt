@@ -1,0 +1,91 @@
+# **************************************************************************** #
+#                                                                              #
+#                                                         :::      ::::::::    #
+#    IRC_concepts_03_protocol.txt                       :+:      :+:    :+:    #
+#                                                     +:+ +:+         +:+      #
+#    By: jcummins <jcummins@student.42prague.com>   +#+  +:+       +#+         #
+#                                                 +#+#+#+#+#+   +#+            #
+#    Created: 2024/11/28 18:51:22 by jcummins          #+#    #+#              #
+#    Updated: 2024/11/29 18:03:48 by jcummins         ###   ########.fr        #
+#                                                                              #
+# **************************************************************************** #
+
+***CONNECTION SETUP***
+IRC clinet-server connections work over TCP/IP. The standard ports for client-server connections are TCP/6667 for plaintext, and TCP/6697 for TLS connections.
+
+??? Should we make these default? Why can we connect on other ports?
+
+***SERVER-TO-SERVER PROTOCOL STRUCTURE***
+Both RFC1459 and RFC2813 define a server-to-server protocol. But in the decades since, implementations have extended this protocol and diverged (see TC6 and P10), and servers have created entirely new protocols. The days where there was one Server-to-server protocol that everyone uses hasn't existed for a long time now.
+
+However, different IRC implementations don't need to interact with each other. Networks generally run one server software across their entire network. and use the S2S protocol implemented by that server. The client protocol is iimportant, but how servers on the network talk to ech other is considered an implementation detail.
+
+***CLIENT-TO-SERVER PROTOCOL STRUCTURE***
+While a client is connected to a server, they send a stream of bytes to each other. This stream contains messages separated by CR ('\r', 0x0D) and LF ('\n', 0x0A). These messages may be sent at any time from either side, and may generate zero or more reply messages.
+
+Software SHOULD use the UTF-8 character encoding to encode and decode messages, with fallbacks as described in the Character Encodings implementation considerations appendix.
+
+Names of IRC entities (clients, servers, channels) are casemapped. This prevents, for example, someone having the nickname 'Dan' and someone else having the nickname 'dan', confusing other users. Servers MUST advertise the casemapping they use in the RPL_ISUPPORT numeric that's sent when connection registration has completed.
+
+***MESSAGE FORMAT***
+An IRC message is a single line, delimited by a pair of CR ('\r', 0x0D) and LF ('\n', 0x0A) characters.
+	When reading messages from a stream, read the incoming data into a buffer. Only parse and process a message once you encounter the \r\n at the end of it. If you encounter an empty message, silently ignore it.
+	When sending messages, ensure that a pair of \r\n characters follows every single message your software sends out.
+
+ABNF - Augmented Backaus-Naur Form - is a metalanguage based on Backaus-Naur Form (BNS) but consisting of its own syntax and derivation rules. The motive principle for ABNF is to describe a formal system of a language to be used as a bidirectional communications protocol. It is defined by internet Standar 68 which as of December 2010 was RFC 5234
+
+Messages have this format, as rough ABNF
+
+message		::= ['@' <tags> SPACE] [':' <source> SPACE] <command> <parameters> <crlf>
+SPACE		::=	%x20 *( %x20 )	; space character(s)
+crlf		::= %x0D %x0A		; "carriage return" "linefeed"
+
+The specific parts of an IRC message are:
+	tags: 		Optional metadata on a message, starting with ('@', 0x40).
+	source:		Optional note of where the message came from, starting with (':', 0x3A).
+	command:	The specific command this message represents.
+	parameters:	If it exists, data relevant to this specific command.
+
+These message parts, and parameters themselves, are separated by one or more ASCII SPACE characters (' ', 0x20).
+
+Most IRC servers limit messages to 512 bytes in length, including the trailing CR-LF characters. Implementations which include message tags need to allow additional bytes for the tags section of a message; clients must allow 8191 additional bytes and servers must allow 4096 additional bytes.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following sections describe how to process each part, but here are a few complete example messages:
+
+	:irc.example.com CAP LS * :multi-prefix extended-join sasl
+
+	@id=234AB :dan!d@localhost PRIVMSG #chan :Hey what's up!
+
+	CAP REQ :sasl
+
+***TAGS***
+
+This is the format of the tags part:
+
+	<tags>			::= <tag> [';' <tag>]*
+	<tag>			::= <key> ['=' <escaped value>]
+	<key>			::= < <client_prefix> ] [ <vendor> '/' ] <sequence of letters, digits, hyphens (`-`)>
+	<client_prefix>	::= '+'
+	<escaped value>	::= <sequence of any characters except NUL, CR, LF, semicolon (`;`) and SPACE>
+	<vendor>		::= <host>
+
+Basically, a series of <key>[=<value>] segments, separated by (';', 0x3B)
+
+The tags part is optional, and MUST NOT be sent unless explicityl enabled by a capability. This message part starts with a leading ('@', 0x40) character, which MUST be the first character of the message itself. The leading ('@'. 0X40) is stripped from the value before it gets processed further.
+
+Here are some examples of tags sections and how they could be represented as JSON objects:
+
+	@id=123AB;rose			->	{"id": "1234AB", "rose": ""}
+	@url=;netsplit=tur,ty	->	{"url": "", "netsplit": "tur,ty"}
+
+For more information on processing tags - including the naming and registration of them, and how to escape values - see the IRCv3 message tags specification.
+
+***SOURCE***
+
+	source		::= <servername> / ( <nickname> [ "!" <user> ] [ "@" <host> ] )
+	nick		::= <any characters except NUL, CR, LF, chantype characer, and SPACE> <possibly empty sequence of any characers except NUL, CR, LF, and SPACE>
+	user		::= <sequence of any characters except NUL, CR, LF, and SPACE>
+
+The source (formerly known as prefix) is optional and starts with a (':', 0x3A) character (which is stripped from the value), and if there are no tags 

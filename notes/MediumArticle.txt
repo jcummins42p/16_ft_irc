@@ -1,0 +1,110 @@
+# **************************************************************************** #
+#                                                                              #
+#                                                         :::      ::::::::    #
+#    MediumArticle.txt                                  :+:      :+:    :+:    #
+#                                                     +:+ +:+         +:+      #
+#    By: jcummins <jcummins@student.42prague.com>   +#+  +:+       +#+         #
+#                                                 +#+#+#+#+#+   +#+            #
+#    Created: 2024/11/04 16:04:39 by jcummins          #+#    #+#              #
+#    Updated: 2024/11/04 17:29:29 by jcummins         ###   ########.fr        #
+#                                                                              #
+# **************************************************************************** #
+
+Small IRC (internet relay chat) server: basics of network programming: sockets programming, connection handling, data exchange. Create a socket, bind it to a port, listen for incoming connections, and handle client connections. Various types of sockets available and their use cases.
+
+1. Create all neccessary classes and methods
+2. Create a socker tand handle the server signals
+3. Use the poll() function to check if an event has occurred
+4. If the event is a new client, register it
+5. If the event is data from a registered client, handle it
+
+1. Create necessary classes and methods
+Server class: contains all the information about the server. Contains a vector list of clients and manage their requests.
+Client class: contains info about a specific client who has connected to the server.
+
+2. Create a socket and handle server signals.
+	Set up communication endpoint and signal handling mechanisms.
+	What is a socket? A file descriptor. IPC is inter-process communication. There are various methods that processes can use to communicate with each other:
+		- pipes (pipex, minishell)
+		- signals (minitalk)
+		- semaphores (philosophers)
+		- sockets (ft_irc, webserv)
+
+	Sockets: An endpoint that enables two processes to communicate with eahc other, on the same machine or across a network. An interface between the application layer and the transport layer of the networking stack.
+
+Ports are a 16 bit int and there are 3 types of ports:
+	1. ports 0 to 1023 are reserved for specific services and protocols, such as
+		- HTTP	(80)
+		- FTP	(21)
+		- SSH	(22)
+			These all require administrative priviledges to use.
+	2. ports 1024 to 49151 can be registered for specific purposes and are used by non-standart apps and services.
+	3. Dynamic or private ports 49152 to 65535 are used by client applications for outgoing conections. These porta are dynamically allocated by the operation system to clients when they initiate outgoin connections.
+
+SerSocket() function - create a sockaddr_in struct that contains important info about hte server address. Represents an IPv4 address and port number combination. It's part of the socket address structure sockaddr family":
+
+struct sockaddr_in {
+	sa_family_t		sin_family;
+	in_port_t		sin_port;
+	struct in_addr	sin_addr;
+	char			sin_zero[8];
+};
+
+struct in_addr {
+	in_addr_t s_addr;
+}
+
+Explanation:
+	sin_family: integer representing the address family. For IPv4, this is typically AF_INET
+	sin_port:	16-bit int representing the port number. stored in network byte order (big-endinan) so we use the htons() function to convert
+	sin_addr:	struct in_addr containing the IPv4 address. The struct only has a single member representing the IPv4 address in network byte order. INADDR_ANY represents "any" IP address, meaning the socket will be bound to all available network interfaces on the host.
+	sin_zero:	This fielf is padding to make the structure the same size as struct sockaddr, which is necessary for compatibility reasons. It's unused and full of zeros.
+	struct pollfd:	This is a struct used for monitoring file descriptors for I/O events. It's commonly employed with the poll() syste call to perform multilexed I/O, allowing a program to efficiently wait for events on multiple file desriptors simultaneously without having to resort to blocking I/O operations.
+
+struct pollfd {
+	int		fd;		// file descriptor
+	short	events;	// requested events
+	short	revents;	// returned events
+};
+
+	events: A bitmask specifies the events to monitor for the given file descriptor. Common events include read, write, error, and hang-up evenets. Like POLLIN:(any readable data avaialble) or POLLHUP:(file secriptor was 'hung up' or closed)
+	revents:	A bitmask indicating the events that occurred for the given file descriptor. This member is typically filled in by the poll() function upon return and indicates the events tha triggered the poll.
+
+CREATE THE SOCKET using system call socket()
+	int socket(int domain, int type, int protocol);
+
+The socket() function is a sytem call used to create a new socket of a specified type (such as stream or data gram) and returns a file descriptor that can be used to refer to that socket in subsequent system calls.
+	int domain:		Specifies the communication domain or address family fro the socket. Common values include AF_INET for IPv4 and AF_INET6 for IPv6.
+	type:			Specifies the type of communication semantics for the socket. Common values include SOCK_STREAM for TCP sockets (reliable, bi-directional, byte-stream communication) and SOCK_DGRAM for UDP sockets (providing datagram-oriented communication)
+	protocol:		Specifies the protocol to be used with the socket. For most socket types, this argument is set to 0, indicating htat the system should choose an appropriate protocol based on the specified domain and type.
+
+Now that we have the socket file descriptor, the next step is to bind it with the address. However, some important options need to be set first.
+
+To begin, it is necessary to set the SO_REUSEADDR option for the socket:
+	int setsockopt(int sockfd, int level, int optname, const void *optval, socklen_t optlen);
+
+	- setsockopt() function is used to set options on a socket. It allows you to configure various socket-level options to control the behavior of the socket. In the provided example, it's being used to set the SO_REUSEADDR option on a socket.
+	- level		is used to indicate the protocol level at which the option resides. For socket-level options, setting the level parameter to SOL_SOCKET tells the stsockopt() function that the option being set is a socket-level option and should be applied to the socket itself. Other possible values of 'level' correspond to specific protocol families, such as IPPROTO_TCP for TCP
+	- optname 	set to SO_REUSEADDR allows for the immediate reuse of local addresses and ports. This is especially useful in situations where a server needs to bind to the same address and port it was previously using, without waiting for the default TIME_WAIT state to expire. In TCP, when a server stops running, the port and address are typically reserved for a duration called the TIME_WAIT state, which lasts for twice the Maximum Segment Lifetime (2MSL). during this time, delayed packets related to the previous connection are managed. However, the setting SO_REUSEADDR enables the socket to bypass this reservation period and reuse hte port and address right away.
+	- optval	parameter is a pointer to the value that needs to be set for the option. In the given example, it refers to a pointer to the en variable.
+	- optlen parameter represents the size of the option value, in bytes. setting en value to 1 indicates that the option is enabled.
+
+It is now time to use the fcntl() function.
+	int fcntl(int fd, int cmd, ... /* arg */);
+
+The fcntl() function performs various control operations on file descriptors. In the provied code, it's being used to set the O_NONBLOCK flag on the server socket file descriptor.
+	- fd is the file descriptor on which to operate.
+	- cmd is the operation to perform. In this case, it's F_SETFL< indicating htat you want to set the file status flags.
+ fcntl() is used to set the O_NONBLOCK flag on the server socket file descriptor. This flag sets the socket to non-blocking mode, which means that oeprations such as read() and write() on the socket will return immediately, even if there is no data abailable to read or the write operation cannot be completed immediately. This provides a flexible and efficient mechanism for handling I/O operations asynchronously without blocking the program's execution.
+
+For instance, if you are connected to a server through the NetCut(nc) tool and you type something in the terminal but don't hit the send button, and then you attempt to shut down the server, you will not be able to do so, because here is a reading operation in progress.
+
+The next step in the process is to bind the socket using the bind() function.
+	int bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
+
+When you create a socket using the socket() function, it's just a sommunication endpoint without any specific address or port associated with it.
+The bind() dunction enables you to assign a specific address and port to a socket, thus providing it with a unique identity on the network. By associating a socket with an address and port, you enable other processes to communicate with it over a network.
+The address can be an IP address (IPv4 or IPV6) or a hostname, and the port is a numerical value that identifies a specific service running on the host.
+You can bind your program to any port within the available range that we discussed earlier. However, there is an important point to note. If you bind your program to port 0, the operating system will automatically bind it to any available port within the range of Dynamic or private ports (49152 to 65535). This can be useful when the specific port number is not important.
+The bind() function takes three parameters: the socket file descriptor sockfd, a pointer to a struct sockaddr containing the address information add and the size of the address structure addrlen.
+If you are wondering about hte argument type used in add argument, why is that specific type used? Well as you may know, the address family of a socket can be either IPv4 or IPv6. If wehad to create two separate implementations for the bind() function, one for IPv4 and one for IPv6, it would be inefficient. Instead, struct sockaddr is used as a generic type that ca hold various types of socket addresses including IPv4, IPv6, and other address types supported by different protocols. Typically, you would cast this method to a pointer of the appropriate socket address structure type, such as struct sockadd_in for IPv4 addresses or struct sockaddr_in6 for IPv6 addresses. this allows you to access the address and port fields specific to the address family.

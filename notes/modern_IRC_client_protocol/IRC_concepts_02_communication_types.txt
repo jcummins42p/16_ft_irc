@@ -1,0 +1,64 @@
+# **************************************************************************** #
+#                                                                              #
+#                                                         :::      ::::::::    #
+#    IRC_concepts_02_communication_types.txt            :+:      :+:    :+:    #
+#                                                     +:+ +:+         +:+      #
+#    By: jcummins <jcummins@student.42prague.com>   +#+  +:+       +#+         #
+#                                                 +#+#+#+#+#+   +#+            #
+#    Created: 2024/11/28 17:16:37 by jcummins          #+#    #+#              #
+#    Updated: 2024/11/28 18:50:46 by jcummins         ###   ########.fr        #
+#                                                                              #
+# **************************************************************************** #
+
+***ONE-TO-ONE COMMUNICATION***
+
+                          1--\
+                              A        D---4
+                          2--/ \      /
+                                B----C
+                               /      \
+                              3        E
+
+   Servers: A, B, C, D, E         Clients: 1, 2, 3, 4
+
+Communication on a one-to-one basis is usually only preformed by clients, since most server-server traffic is not a result of servers talking only to each other.
+
+Servers should be able to send a message from any one clinet to any other. Servers send a message in exactly one direction along the spanning tree to reach any clinet. Thus the parth of a message being delivered is the shortest path between any two points on the spanning tree.
+
+The following examples all refer to the figure above.
+1	A message between clients 1 and 2 is only seen by server A, which sends it straight to client 2.
+2	A message between clients 2 and 3 is seen by servers A, B and client 3. No other clients or servers are allowed to see the message.
+3	A message between clients 2 and 4 is seen by servers A, B, C, D and client 4 only.
+
+***ONE-TO-MANY COMMUNCATION***
+The main goal of IRC is to provide a forum which allows easy and efficient conferencing - one to many conversations. IRC offers several means to achieve rthis, each serving its own purpose.
+
+	***TO A CHANNEL***
+	In IRC, the channel has a role equivalent to that of the multicast group; their existnece is dynamic and the actual conversation carried out on a channel is generall sent only to servers which are suppporting users on a given channel, and only once to every local link as each server is responsible for fanning the original message to ensure it will reach all recipients.
+
+	The following examples all refer to the above figure:
+	1	Any channel with a single client in it. Messages to this channel go to the server and then nowhere else.
+	2	Two clients in a channel. All messages traverse a path as if they were private messages between the two clients outside a channel.
+	3	Clients 1, 2 and 3 are in a channel. All mesages to this channel are sent to all clients and only those servers which must be traversed by the message if it were a private message to a single client. If client 1 sends a message, it goes back to clinet 2 and then via server B to client 3.
+
+	***TO A HOST/SERVER MASK***
+	To provide with some mechanism to send messages to a large body of related users, host and server mask messages are available. These messages are sent to to users whose host or server information match that of the given mask. The messages are only sent to locations where users are, in a fashion similar to that of channels.
+
+	***TO A LIST***
+	The least efficient style of one-to-many conversation is through clients talking to a 'list' of targets (client, channel, ask). How this is done is almost self-explanatory: the clinet gives a list of destinations to which the message is to be delivered and the server breaks it up and dispatches a separate copy of the message to each given destination.
+
+	This is not as efficient as using a channel since the destination list may be broken up and the dispatch sent without checking to make sure duplicates aren't sent down each path.
+
+***ONE-TO-ALL***
+The one-to-all type of message is better described as a broadcast message, sent to all clients or servers or both. On a large network of users and servers, a single message can result in a lot of traffic being sent over the network in an effort to reach all of the desired destinations.
+
+For some class of messages, there is no option but to broadcast it to all servers so that the state information held by each server is consistent between them.
+
+	***CLIENT-TO-CLIENT***
+	IRC operators may be able to send a message to every client currently connected to the network. This depends on the specific features and commands implemented in the server software.
+
+	***CLIENT-TO-SERVER***
+	Most of the commands which result in a change of state information *such as channel membership, channel modes, user status, etc.) MUST be sent to all servers by default, and this distribution SHALL NOT be changed by the client.
+
+	***SERVER-TO-SERVER***
+	While most messages between servers are distributed to all 'other' servers, this is only required for any message that affects a user, channel, or server. Since these are the basic items found in IRC, nearly all messages originating from a server are broadcast to all other connected servers.
