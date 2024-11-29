@@ -79,3 +79,16 @@ Syntax:
 MODE <nickname> <flags> (user)
 MODE <channel> <flags> [<args>]
 The MODE command is dual-purpose. It can be used to set both user and channel modes.
+........................................................
+
+*when a channel is created, a password should be set and the client 
+who created the channel should be set as the operator(admin), 
+if the admin leaves the channel the privileges should move to 
+the second client*
+
+*PRIMSG does not send messages to the 
+channel only to specific client*
+
+Penny
+PRIVMSG now works as it should
+JOIN now needs a password which is set when the channel is created (JOIN <#channel> <password>)
