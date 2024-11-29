@@ -6,7 +6,7 @@
 /*   By: pyerima <pyerima@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 14:48:02 by pyerima           #+#    #+#             */
-/*   Updated: 2024/11/27 14:41:51 by pyerima          ###   ########.fr       */
+/*   Updated: 2024/11/29 18:01:55 by pyerima          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,6 +53,7 @@ private:
     std::string intToString(int number);
 
 public:
+    Channel* getChannelByName(const std::string& channelName);
     Server(int port, const std::string& in_pass);
     ~Server(void);
     void run();

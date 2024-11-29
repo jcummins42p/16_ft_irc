@@ -6,7 +6,7 @@
 /*   By: pyerima <pyerima@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 14:48:02 by pyerima           #+#    #+#             */
-/*   Updated: 2024/11/27 15:27:11 by pyerima          ###   ########.fr       */
+/*   Updated: 2024/11/29 18:22:00 by pyerima          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -193,29 +193,30 @@ void Server::handleUserCommand(int client_fd, std::istringstream& iss)
 	}
 }
 
-void Server::handleJoinCommand(int client_fd, std::istringstream& iss)
-{
-	std::string channel_name;
-	iss >> channel_name; // read the channel name from the stream
-	Channel* channel;
+void Server::handleJoinCommand(int client_fd, std::istringstream& iss) {
+    std::string channelName;
+    std::string password;
+    iss >> channelName >> password;
 
-	if (channel_name.empty()) {
-		const std::string prompt = "Can't set an empty channel name!\n";
-		send(client_fd, prompt.c_str(), prompt.size(), 0);
-		return ;
-	}
-	// check if the channel exists
-	if (channels.find(channel_name) == channels.end()) {
-		channel = new Channel(channel_name, *clients[client_fd]); // create a new channel if it doesn't exist
-		channels[channel_name] = channel; // add channel to the map
-	} else {
-		channel = channels[channel_name]; // get existing channel
-	}
-
-	channel->joinChannel(*clients[client_fd]); // add client to the channel
-	clients[client_fd]->channels.insert(channel_name); // update clients channel list
-	std::cout << "Client " << client_fd << " joined channel " << channel_name << std::endl;
+    // Look for the channel by name
+    Channel* channel = getChannelByName(channelName.substr(1));  // Remove the '#' from channel name
+    if (channel == NULL) {
+        // If the channel doesn't exist, create it
+        channel = new Channel(channelName.substr(1), *clients[client_fd], password);  // Assuming the client is the creator
+        channels[channelName.substr(1)] = channel;  // Add the new channel to the map
+        send(client_fd, "Joined channel successfully.\n", 29, 0);
+    } else {
+        // Otherwise, join the existing channel
+        if (channel->joinChannel(*clients[client_fd], password)) {
+            send(client_fd, "Joined channel successfully.\n", 29, 0);
+        } else {
+            send(client_fd, "Failed to join channel.\n", 24, 0);
+        }
+    }
 }
+
+
+
 
 void Server::handlePartCommand(int client_fd, std::istringstream& iss)
 {
@@ -233,19 +234,50 @@ void Server::handlePartCommand(int client_fd, std::istringstream& iss)
 }
 
 // Why does PRIVMSG sends a message to some channel???
-void Server::handlePrivmsgCommand(int client_fd, std::istringstream& iss)
-{
-	std::string target;
-	std::string msg;
-	iss >> target;
-	std::getline(iss, msg);
+void Server::handlePrivmsgCommand(int client_fd, std::istringstream& iss) {
+    std::string target;
+    std::string msg;
+    iss >> target;
+    std::getline(iss, msg);
 
-	if (channels.find(target) != channels.end()) {
-		channels[target]->channelMessage(clients[client_fd]->getNick() + ": " + msg + "\n", *clients[client_fd]);
-	} else {
-		send(client_fd, "Target not found.\n", 18, 0);
-	}
+    // Trim leading whitespace from the message
+    if (!msg.empty() && msg[0] == ' ')
+        msg.erase(0, 1);
+
+    // Check if the target is a channel
+    if (target[0] == '#') {
+        // Remove the '#' from the channel name
+        std::string channelName = target.substr(1);
+
+        // Look for the channel by name
+        Channel* channel = getChannelByName(channelName);
+        if (channel) {
+            // Send the message to all clients in the channel
+            std::string formattedMsg = "Message from " + clients[client_fd]->getNick() + ": " + msg + "\n";
+            channel->channelMessage(formattedMsg, *clients[client_fd]);
+            return;
+        } else {
+            // If the channel is not found
+            send(client_fd, "Channel not found.\n", 19, 0);
+            return;
+        }
+    }
+
+    // If the target is a client (not a channel), find the client by nickname
+    for (std::map<int, Client*>::iterator it = clients.begin(); it != clients.end(); ++it) {
+        if (it->second->getNick() == target) {
+            // Send the private message to the target client
+            std::string formattedMsg = "Private message from " + clients[client_fd]->getNick() + ": " + msg + "\n";
+            send(it->first, formattedMsg.c_str(), formattedMsg.size(), 0);
+            return;
+        }
+    }
+
+    // If the target client was not found
+    send(client_fd, "Target client not found.\n", 26, 0);
 }
+
+
 
 void Server::handleQuitCommand(int client_fd)
 {
@@ -320,4 +352,14 @@ std::string Server::intToString(int number) {
     std::ostringstream oss;
     oss << number;
     return oss.str();
+}
+
+Channel* Server::getChannelByName(const std::string& channelName) {
+    // Iterate through the channels
+    for (std::map<std::string, Channel*>::iterator it = channels.begin(); it != channels.end(); ++it) {
+        if (it->first == channelName) {
+            return it->second; // Return the channel if found
+        }
+    }
+    return NULL; // Use NULL in place of nullptr
 }
