@@ -90,5 +90,10 @@ the second client*
 channel only to specific client*
 
 Penny
-PRIVMSG now works as it should
-JOIN now needs a password which is set when the channel is created (JOIN <#channel> <password>)
+*PRIVMSG now works as it should.
+*JOIN now needs a password which is set 
+when the channel is created (JOIN <#channel> <password>)
+
+TODO
+*clients currently dont get log notifications 
+so that needs to be fixed
