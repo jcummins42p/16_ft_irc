@@ -6,7 +6,7 @@
 /*   By: mmakagon <mmakagon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 14:48:02 by pyerima           #+#    #+#             */
-/*   Updated: 2024/11/19 13:28:12 by mmakagon         ###   ########.fr       */
+/*   Updated: 2024/12/04 15:27:21 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,11 @@
 
 // Construct - destruct
 
-Client::Client(int fd) : fd(fd), is_Authentificated(false) {}
+Client::Client(int fd, const Server &server) :
+	fd(fd),
+	is_Authentificated(false),
+	server(server)
+{}
 
 Client::~Client( void ) {
 	std::cout << "Reminder that you need to implement Client destructor" << std::endl;
@@ -44,3 +48,6 @@ void	Client::setUser(const std::string& in_username) {
 		user = in_username;
 }
 
+const Server &Client::getServer( void ) {
+	return this->server;
+}

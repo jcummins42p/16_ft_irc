@@ -6,7 +6,7 @@
 /*   By: pyerima <pyerima@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/04 14:58:10 by mmakagon          #+#    #+#             */
-/*   Updated: 2024/11/29 18:17:01 by pyerima          ###   ########.fr       */
+/*   Updated: 2024/12/04 17:16:52 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,12 +23,12 @@
 
 class Channel {
 private:
-    std::string name;
-    std::string topic;
-    unsigned int hashed_pass;
-    size_t clnts_limit;
-    bool invite_only;
-    bool topic_admins_only;
+    std::string		name;
+    std::string		topic;
+    unsigned int	hashed_pass;
+    size_t			clnts_limit;
+    bool 			invite_only;
+    bool			topic_admins_only;
     std::set<const Client*> clients;
     std::set<const Client*> admins;
     std::set<const Client*> invited_clients; // Declare the invited clients.
@@ -53,8 +53,8 @@ public:
     // Channel management
     bool addClient(const Client& in_client, const Client& admin);
     bool addAdmin(const Client& in_client, const Client& admin);
-    bool kickClient(const Client& in_client, const Client& admin);
-    bool kickAdmin(const Client& in_client, const Client& admin);
+    bool kickClient(const Client& target, const Client& admin);
+    bool kickAdmin(const Client& target, const Client& admin);
 
     // Join/Leave
     bool joinChannel(const Client& in_client, const std::string& password); // Updated declaration.
@@ -66,7 +66,6 @@ public:
 
     // Group messaging
     void channelMessage(const std::string message, const Client& sender) const;
-    
 };
 
 #endif

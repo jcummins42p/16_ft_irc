@@ -6,7 +6,7 @@
 /*   By: pyerima <pyerima@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/04 13:00:32 by pyerima           #+#    #+#             */
-/*   Updated: 2024/11/27 14:56:54 by pyerima          ###   ########.fr       */
+/*   Updated: 2024/12/04 17:28:08 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,5 +29,11 @@ class Client;
 # include "Server.hpp"
 
 unsigned int	hashSimple(const std::string& in_str);
+
+//std::string intToString(int value) {
+	//char buffer[20];
+	//std::sprintf(buffer, "%d", value);
+	//return std::string(buffer);
+//}
 
 #endif

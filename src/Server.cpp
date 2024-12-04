@@ -6,7 +6,7 @@
 /*   By: pyerima <pyerima@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 14:48:02 by pyerima           #+#    #+#             */
-/*   Updated: 2024/11/29 18:22:00 by pyerima          ###   ########.fr       */
+/*   Updated: 2024/12/04 18:46:04 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,7 +82,7 @@ void Server::acceptClient(struct pollfd* fds) {
     }
 
     logEvent("INFO", "Client connected: FD " + intToString(client_fd));
-    clients[client_fd] = new Client(client_fd);
+    clients[client_fd] = new Client(client_fd, *this);
     const std::string prompt = "Please enter the password: ";
     send(client_fd, prompt.c_str(), prompt.size(), 0);
 
@@ -199,7 +199,7 @@ void Server::handleJoinCommand(int client_fd, std::istringstream& iss) {
     iss >> channelName >> password;
 
     // Look for the channel by name
-    Channel* channel = getChannelByName(channelName.substr(1));  // Remove the '#' from channel name
+    Channel* channel = getChannel(channelName.substr(1));  // Remove the '#' from channel name
     if (channel == NULL) {
         // If the channel doesn't exist, create it
         channel = new Channel(channelName.substr(1), *clients[client_fd], password);  // Assuming the client is the creator
@@ -247,10 +247,11 @@ void Server::handlePrivmsgCommand(int client_fd, std::istringstream& iss) {
     // Check if the target is a channel
     if (target[0] == '#') {
         // Remove the '#' from the channel name
-        std::string channelName = target.substr(1);
+        //std::string channelName = target.substr(1);
+        std::string channelName = target;
 
         // Look for the channel by name
-        Channel* channel = getChannelByName(channelName);
+        Channel* channel = getChannel(channelName);
         if (channel) {
             // Send the message to all clients in the channel
             std::string formattedMsg = "Message from " + clients[client_fd]->getNick() + ": " + msg + "\n";
@@ -316,10 +317,14 @@ void Server::handleModeCommand(int client_fd, std::istringstream& iss)
 }
 
 void Server::handleKickCommand(int client_fd, std::istringstream& iss) {
-	std::string channel_name, target_nick;
-	iss >> channel_name >> target_nick; // read channel name and target nickname
-	//
-	std::cout << "Client " << client_fd << " kicked " << target_nick << " from channel " << channel_name << std::endl;
+	std::string channel_name, target;
+	iss >> channel_name >> target; // read channel name and target nickname
+										//
+	std::cout << "Client " << client_fd << " attempting to kick " << target << " from channel " << channel_name << std::endl;
+	try {getChannelRef(channel_name).kickClient(getClientRef(target), getClientRef(client_fd));}
+	catch ( std::runtime_error &e ) {
+		std::cout << e.what() << std::endl;
+	}
 }
 
 void Server::handleInviteCommand(int client_fd, std::istringstream& iss) {
@@ -354,12 +359,53 @@ std::string Server::intToString(int number) {
     return oss.str();
 }
 
-Channel* Server::getChannelByName(const std::string& channelName) {
-    // Iterate through the channels
-    for (std::map<std::string, Channel*>::iterator it = channels.begin(); it != channels.end(); ++it) {
-        if (it->first == channelName) {
+Client* Server::getClient(const int &fd) {
+    // Iterate through the clients
+    for (std::map<int, Client*>::iterator it = clients.begin(); it != clients.end(); ++it) {
+        if (it->first == fd) {
             return it->second; // Return the channel if found
         }
     }
     return NULL; // Use NULL in place of nullptr
+}
+
+Client* Server::getClient(const std::string& search) {
+    // Iterate through the clients
+    for (std::map<int, Client*>::iterator it = clients.begin(); it != clients.end(); ++it) {
+        if (it->second->getNick() == search) {
+            return it->second; // Return the channel if found
+        }
+    }
+    return NULL; // Use NULL in place of nullptr
+}
+
+Client &Server::getClientRef(const int &fd) {
+	Client *found = getClient(fd);
+	if (!found)
+		throw (std::runtime_error("Error: client not found: fd " + intToString(fd)));
+	return (*found);
+}
+
+Client &Server::getClientRef(const std::string &search) {
+	Client *found = getClient(search);
+	if (!found)
+		throw (std::runtime_error("Error: client not found: " + search));
+	return (*found);
+}
+
+Channel* Server::getChannel(const std::string& search) {
+    // Iterate through the channels
+    for (std::map<std::string, Channel*>::iterator it = channels.begin(); it != channels.end(); ++it) {
+        if (it->first == search) {
+            return it->second; // Return the channel if found
+        }
+    }
+    return NULL; // Use NULL in place of nullptr
+}
+
+Channel &Server::getChannelRef(const std::string &search) {
+	Channel *found = getChannel(search);
+	if (!found)
+		throw (std::runtime_error("Error: channel not found: " + search));
+	return (*found);
 }

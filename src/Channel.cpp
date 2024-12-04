@@ -6,7 +6,7 @@
 /*   By: pyerima <pyerima@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/04 17:00:44 by mmakagon          #+#    #+#             */
-/*   Updated: 2024/11/29 17:44:21 by pyerima          ###   ########.fr       */
+/*   Updated: 2024/12/04 18:21:38 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,10 +23,10 @@ Channel::Channel(const std::string& in_name, const Client& creator, const std::s
         name = "Default chat";
     else
         name = in_name;
-    
+
     if (password.empty())
         throw std::invalid_argument("Password must not be empty when creating a channel.");
-    
+
     hashed_pass = hashSimple(password);  // Set the hashed password for the channel.
     clients.insert(&creator);           // Add the creator as the first client.
     admins.insert(&creator);            // Set the creator as the initial admin.
@@ -114,41 +114,38 @@ bool	Channel::addAdmin(const Client& in_client, const Client& admin) {
 	}
 }
 
-bool Channel::kickClient(const Client& in_client, const Client& admin) {
-    if (admins.find(&admin) == admins.end()) {
-        internalMessage(admin, "You don't have admin rights!\n");
-        return false;
-    }
-    else if (clients.find(&in_client) == clients.end()) {
-        internalMessage(admin, "Can't kick - the user is not in the channel!\n");
-        return false;
-    }
-    else if (admins.find(&in_client) != admins.end()) {
-        internalMessage(admin, "You cannot kick an admin!\n");
-        return false;  // Ensure admins cannot be kicked by non-admins
-    }
-    else {
-        clients.erase(&in_client);  // Remove the user from the channel
-        return true;
-    }
+bool Channel::kickClient(const Client& target, const Client& admin) {
+	try {
+		if (admins.find(&admin) == admins.end())
+			throw (std::runtime_error("Error: kickClient: admin rights required\n"));
+		if (clients.find(&target) == clients.end())
+			throw (std::runtime_error("Error: kickClient: user not in channel\n"));
+		if (admins.find(&target) != admins.end())
+			throw (std::runtime_error("Error: kickClient: cannot kick admin\n"));
+		internalMessage(target, "You have been kicked from " + getName() + " by " + admin.getNick() + ", bye.\n");
+		clients.erase(&target);  // Remove the user from the channel
+	}
+	catch ( std::runtime_error &e ) {
+        internalMessage(admin, e.what());
+	}
+	return true;
 }
 
-
-bool Channel::kickAdmin(const Client& in_client, const Client& admin) {
+bool Channel::kickAdmin(const Client& target, const Client& admin) {
     if (admins.find(&admin) == admins.end()) {
         internalMessage(admin, "You don't have admin rights!\n");
         return false;
     }
-    else if (clients.find(&in_client) == clients.end()) {
+    else if (clients.find(&target) == clients.end()) {
         internalMessage(admin, "Can't kick - the user is not in the channel!\n");
         return false;
     }
-    else if (admins.find(&in_client) == admins.end()) {
+    else if (admins.find(&target) == admins.end()) {
         internalMessage(admin, "Can't kick - the user is not an admin!\n");
         return false;
     }
     else {
-        admins.erase(&in_client);  // Remove the user from the admin list
+        admins.erase(&target);  // Remove the user from the admin list
 
         // If all admins are removed, assign a new admin if there are clients left.
         if (admins.empty() && !clients.empty()) {
@@ -160,8 +157,6 @@ bool Channel::kickAdmin(const Client& in_client, const Client& admin) {
         return true;
     }
 }
-
-
 
 /* JOIN - LEAVE */
 
@@ -220,8 +215,6 @@ bool Channel::leaveChannel(const Client& in_client) {
     return true;
 }
 
-
-
 void Channel::create(const Client& creator, const std::string& password) {
     hashed_pass = hashSimple(password);  // Set hashed password for the channel
     clients.insert(&creator);            // Add the creator to the clients
@@ -239,7 +232,6 @@ void Channel::channelMessage(const std::string message, const Client& sender) co
         }
     }
 }
-
 
 /* INVITE MANAGEMENT */
 

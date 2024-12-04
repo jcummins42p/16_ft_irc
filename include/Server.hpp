@@ -6,7 +6,7 @@
 /*   By: pyerima <pyerima@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 14:48:02 by pyerima           #+#    #+#             */
-/*   Updated: 2024/11/29 18:01:55 by pyerima          ###   ########.fr       */
+/*   Updated: 2024/12/04 17:24:04 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,8 @@
 #include <fstream>
 #include <vector>
 #include <poll.h>
+#include <iostream>
+#include <cstdio>
 #include "Client.hpp"
 #include "Channel.hpp"
 #include "ft_irc.hpp" // Ensure it includes the MAX_CLIENTS definition
@@ -53,10 +55,16 @@ private:
     std::string intToString(int number);
 
 public:
-    Channel* getChannelByName(const std::string& channelName);
     Server(int port, const std::string& in_pass);
     ~Server(void);
     void run();
+
+	Client *getClient(const std::string &search);
+	Client *getClient(const int &fd);
+	Client &getClientRef(const std::string &search);
+	Client &getClientRef(const int &fd);
+	Channel *getChannel(const std::string &search);
+	Channel &getChannelRef(const std::string &search);
 };
 
 #endif
