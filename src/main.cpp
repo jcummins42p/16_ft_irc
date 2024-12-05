@@ -6,7 +6,7 @@
 /*   By: mmakagon <mmakagon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 14:48:02 by pyerima           #+#    #+#             */
-/*   Updated: 2024/11/26 17:41:24 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/05 19:47:37 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,8 +19,8 @@ int main(int argc, char* argv[]) {
 	}
 
 	int port = std::atoi(argv[1]);
-	Server server(port, argv[2]);
-	server.run();
+	Server *server = Server::getInstance(port, argv[2]);
+	server->run();
 
 	return 0;
 }

@@ -6,7 +6,7 @@
 /*   By: pyerima <pyerima@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 14:48:02 by pyerima           #+#    #+#             */
-/*   Updated: 2024/12/04 17:24:04 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/05 19:21:59 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,15 +29,32 @@
 
 class Server {
 private:
+	// static pointer to the instance of the class
+	static Server *instancePtr;
+	//	Private constructor to prevent preation of multiple servers
+    Server(int port, const std::string& in_pass);
+	Server(const Server &other);
+
+	//	poll fd str
+    struct pollfd fds[MAX_CLIENTS + 1];
+
     int server_fd;
     unsigned int hashed_pass;
     std::map<int, Client*> clients;
     std::map<std::string, Channel*> channels;
     std::ofstream logFile;
 
+	// need to send and receive from this after polling rather than sending messages direct to fd with send()
+	// keep filling this until it's output in the polling
+	std::map<int, std::vector<std::string> > inBuffs;
+	std::map<int, std::vector<std::string> > outBuffs;
+
     void acceptClient(struct pollfd* fds);
     void handleClient(int client_fd);
+	void sendMessages(struct pollfd &fd);
     void processMessage(int client_fd, const std::string& message);
+
+	Channel *createChannel(int client_fd, std::string chName, std::string passwd);
 
     // Command handlers
     void handleNickCommand(int client_fd, std::istringstream& iss);
@@ -52,10 +69,14 @@ private:
     void handleInviteCommand(int client_fd, std::istringstream& iss);
 
     void logEvent(const std::string& level, const std::string& message);
+
+	//	Wrapper for send to automaticall calculate size
+	void sendString(int client_fd, const std::string &message);
     std::string intToString(int number);
 
 public:
-    Server(int port, const std::string& in_pass);
+	//	Singleton server startup
+	static Server *getInstance(int port, const std::string &in_pass);
     ~Server(void);
     void run();
 

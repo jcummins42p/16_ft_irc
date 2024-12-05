@@ -6,7 +6,7 @@
 /*   By: mmakagon <mmakagon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 14:48:02 by pyerima           #+#    #+#             */
-/*   Updated: 2024/12/04 15:27:21 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/05 20:04:43 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,16 +36,14 @@ void	Client::setAuthentificated(void) { is_Authentificated = true; }
 
 void	Client::setNick(const std::string& in_nick) {
 	if (in_nick.empty())
-		std::cerr << "Can't set an empty nick!" << std::endl;
-	else
-		nick = in_nick;
+		throw std::invalid_argument("Can't set an empty nick!");
+	nick = in_nick;
 }
 
 void	Client::setUser(const std::string& in_username) {
 	if (in_username.empty())
-		std::cerr << "Can't set an empty username!" << std::endl;
-	else
-		user = in_username;
+		throw std::invalid_argument("Can't set an empty username!");
+	user = in_username;
 }
 
 const Server &Client::getServer( void ) {

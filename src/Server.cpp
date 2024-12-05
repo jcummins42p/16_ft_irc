@@ -6,13 +6,25 @@
 /*   By: pyerima <pyerima@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 14:48:02 by pyerima           #+#    #+#             */
-/*   Updated: 2024/12/04 18:46:04 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/05 20:43:28 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Server.hpp"
 #include <arpa/inet.h>
 #include <ctime> // For time functions
+
+// Constructors / destructor
+
+Server *Server::instancePtr = NULL;
+
+Server *Server::getInstance(int port, const std::string &in_pass) {
+	if (instancePtr == NULL) {
+		instancePtr = new Server(port, in_pass);
+		return instancePtr;
+	}
+	return instancePtr;
+}
 
 Server::Server(int port, const std::string& in_pass) {
     server_fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -29,8 +41,6 @@ Server::Server(int port, const std::string& in_pass) {
     logFile.open("server.log", std::ios::app);
     logEvent("INFO", "Server initialized on port " + intToString(port));
 }
-
-
 
 Server::~Server(void) {
     for (std::map<int, Client*>::iterator it = clients.begin(); it != clients.end(); ++it) {
@@ -49,8 +59,15 @@ Server::~Server(void) {
     }
 }
 
+//	General functions
+
+std::string Server::intToString(int number) {
+    std::ostringstream oss;
+    oss << number;
+    return oss.str();
+}
+
 void Server::run() {
-    struct pollfd fds[MAX_CLIENTS + 1];
     fds[0].fd = server_fd;
     fds[0].events = POLLIN;
 
@@ -59,10 +76,15 @@ void Server::run() {
     }
 
     logEvent("INFO", "Server is running. Waiting for connections...");
-    while (true) {
+    while (true) { // waits for results on the monitored file descriptors
         int ret = poll(fds, MAX_CLIENTS + 1, -1);
-        (void)ret; // To suppress unused variable warning
+		if (ret < 0) {
+			logEvent("ERROR", "poll() failed");
+			break;
+		}
+
         for (int i = 0; i <= MAX_CLIENTS; i++) {
+			// check for readable events POLLIN
             if (fds[i].revents & POLLIN) {
                 if (fds[i].fd == server_fd) {
                     acceptClient(fds);
@@ -70,9 +92,50 @@ void Server::run() {
                     handleClient(fds[i].fd);
                 }
             }
+			sendMessages(fds[i]);
         }
     }
 }
+
+void Server::sendMessages(struct pollfd &fd)
+{
+	if (fd.revents & POLLOUT) {
+		int client_fd = fd.fd;
+		if (!outBuffs[client_fd].empty()) {
+			const std::string &message = outBuffs[client_fd].front();
+			ssize_t bytes_out = send(client_fd, (message + "\n").c_str(), message.size() + 1, 0);
+			if (bytes_out > 0) {
+				logEvent("INFO", "Message sent to client " + intToString(client_fd) + ": " + message);
+				outBuffs[client_fd].erase(outBuffs[client_fd].begin());
+			} else if (bytes_out < 0) {
+				logEvent("ERROR", "Failed to send message to client " + intToString(client_fd) + ": " + message);
+			}
+		}
+		if (outBuffs[client_fd].empty()) {
+			fd.events &= ~POLLOUT;
+		}
+	}
+}
+
+//	Add message to the server's message out buffer for that client
+void Server::sendString(int client_fd, const std::string &message) {
+	try {
+		outBuffs[client_fd].push_back( message );
+
+		for (int i = 0; i <= MAX_CLIENTS; ++i) {
+			if (fds[i].fd == client_fd) {
+				fds[i].events |= POLLOUT;
+				break;
+			}
+		}
+	}
+	catch ( std::exception &e ) {
+		std::cerr 	<< "Error adding message to buffer of client " << client_fd
+					<< ": " << e.what() << std::endl;
+	}
+}
+
+//	Client Commands
 
 void Server::acceptClient(struct pollfd* fds) {
     int client_fd = accept(server_fd, NULL, NULL);
@@ -83,8 +146,7 @@ void Server::acceptClient(struct pollfd* fds) {
 
     logEvent("INFO", "Client connected: FD " + intToString(client_fd));
     clients[client_fd] = new Client(client_fd, *this);
-    const std::string prompt = "Please enter the password: ";
-    send(client_fd, prompt.c_str(), prompt.size(), 0);
+	sendString(client_fd, "Please enter the password: ");
 
     for (int i = 1; i <= MAX_CLIENTS; i++) {
         if (fds[i].fd == -1) {
@@ -111,22 +173,20 @@ void Server::handleClient(int client_fd) {
 
     buffer[bytes_received] = '\0';
     std::string message(buffer);
+	if (!message.empty() && message[message.length() - 1] == '\n')
+		message.erase(message.length() - 1);
     logEvent("INFO", "Received message from FD " + intToString(client_fd) + ": " + message);
 
     if (!clients[client_fd]->getAuthentificated()) {
-        if (!message.empty() && message[message.length() - 1] == '\n')
-            message.erase(message.length() - 1);
         unsigned int in_hashed_pass = hashSimple(message);
 
         if (in_hashed_pass != this->hashed_pass) {
-            const std::string prompt = "Wrong password, try again: ";
-            send(client_fd, prompt.c_str(), prompt.size(), 0);
             logEvent("WARNING", "Authentication failed for FD " + intToString(client_fd));
+			sendString(client_fd, "Wrong password, try again: ");
         } else {
             clients[client_fd]->setAuthentificated();
-            const std::string prompt = "Authentication successful!\n";
-            send(client_fd, prompt.c_str(), prompt.size(), 0);
             logEvent("INFO", "Client authenticated: FD " + intToString(client_fd));
+			sendString(client_fd, "Authentication successful!");
         }
     } else {
         processMessage(client_fd, message);
@@ -169,13 +229,17 @@ void Server::handleNickCommand(int client_fd, std::istringstream& iss)
 {
 	std::string in_nick;
 	iss >> in_nick; // Read the nickname from the stream
-	if (in_nick.empty()) {
-		const std::string prompt = "You can't set an empty nickname!\n";
-		send(client_fd, prompt.c_str(), prompt.size(), 0);
+	try {
+		clients[client_fd]->setNick(in_nick);
+		logEvent("INFO", "Client " + intToString(client_fd) + " set nickname to " + clients[client_fd]->getNick());
+		sendString(client_fd, "Successfully set nickname to " + in_nick );
 	}
-	else {
-		clients[client_fd]->setNick(in_nick); // Set the client's nickname
-		std::cout << "Client " << client_fd << " set nickname to " << clients[client_fd]->getNick() << std::endl;
+	catch ( std::invalid_argument &e ) {
+		logEvent("WARNING", "Client " + intToString(client_fd) + " failed to set empty nickname");
+		sendString(client_fd, e.what());
+	}
+	catch ( std::exception &e ) {
+		std::cerr << e.what() << std::endl;
 	}
 }
 
@@ -183,14 +247,27 @@ void Server::handleUserCommand(int client_fd, std::istringstream& iss)
 {
 	std::string in_username;
 	iss >> in_username; // Read the username from the stream
-	if (in_username.empty()) {
-		const std::string prompt = "You can't set an empty username!\n";
-		send(client_fd, prompt.c_str(), prompt.size(), 0);
+	try {
+		clients[client_fd]->setUser(in_username);
+		logEvent("INFO", "Client " + intToString(client_fd) + " set username to " + clients[client_fd]->getUser());
+		sendString(client_fd, "Successfully set username to " + in_username );
 	}
-	else {
-		clients[client_fd]->setUser(in_username); // Set the client's username
-		std::cout << "Client " << client_fd << " set username to " << clients[client_fd]->getUser() << std::endl;
+	catch ( std::invalid_argument &e ) {
+		logEvent("WARNING", "Client " + intToString(client_fd) + " failed to set empty username");
+		sendString(client_fd, e.what());
 	}
+	catch ( std::exception &e ) {
+		std::cerr << e.what() << std::endl;
+	}
+}
+
+Channel *Server::createChannel(int client_fd, std::string chName, std::string passwd) {
+	Channel *output = new Channel(chName, *clients[client_fd], passwd);
+	channels[chName] = output;  // Add the new channel to the map
+	sendString(client_fd, "Made new channel successfully.");
+	logEvent("INFO", "Client " + intToString(client_fd) + " created channel " + output->getName());
+
+	return (output);
 }
 
 void Server::handleJoinCommand(int client_fd, std::istringstream& iss) {
@@ -199,24 +276,25 @@ void Server::handleJoinCommand(int client_fd, std::istringstream& iss) {
     iss >> channelName >> password;
 
     // Look for the channel by name
-    Channel* channel = getChannel(channelName.substr(1));  // Remove the '#' from channel name
-    if (channel == NULL) {
-        // If the channel doesn't exist, create it
-        channel = new Channel(channelName.substr(1), *clients[client_fd], password);  // Assuming the client is the creator
-        channels[channelName.substr(1)] = channel;  // Add the new channel to the map
-        send(client_fd, "Joined channel successfully.\n", 29, 0);
+    Channel* channel = getChannel(channelName);
+	// If the channel doesn't exist, create it
+	if (channel == NULL) {
+		try { channel = createChannel(client_fd, channelName, password); }
+		catch ( std::invalid_argument &e ) {
+			logEvent("ERROR", "Client " + intToString(client_fd) + " failed to create channel " + channelName + ": " + std::string(e.what()));
+			sendString(client_fd, e.what());
+		}
     } else {
         // Otherwise, join the existing channel
         if (channel->joinChannel(*clients[client_fd], password)) {
-            send(client_fd, "Joined channel successfully.\n", 29, 0);
+			logEvent("INFO", "Client " + intToString(client_fd) + " joined existing channel " + channel->getName());
+			sendString(client_fd, "Joined channel successfully.");
         } else {
-            send(client_fd, "Failed to join channel.\n", 24, 0);
+			sendString(client_fd, "Failed to join channel.");
+			logEvent("ERROR", "Client " + intToString(client_fd) + " failed to join channel " + channel->getName());
         }
     }
 }
-
-
-
 
 void Server::handlePartCommand(int client_fd, std::istringstream& iss)
 {
@@ -226,10 +304,10 @@ void Server::handlePartCommand(int client_fd, std::istringstream& iss)
 	if (channels.find(channel_name) != channels.end()) {
 		channels[channel_name]->leaveChannel(*clients[client_fd]);
 		clients[client_fd]->channels.erase(channel_name);
-		send(client_fd, ("Left channel: " + channel_name + "\n").c_str(), 25, 0);
-		channels[channel_name]->channelMessage(clients[client_fd]->getNick() + " has left the channel.\n", *clients[client_fd]);
+		send(client_fd, ("Left channel: " + channel_name ).c_str(), 25, 0);
+		channels[channel_name]->channelMessage(clients[client_fd]->getNick() + " has left the channel.", *clients[client_fd]);
 	} else {
-		send(client_fd, "Channel not found.\n", 20, 0);
+		sendString(client_fd, "Channel not found");
 	}
 }
 
@@ -246,36 +324,27 @@ void Server::handlePrivmsgCommand(int client_fd, std::istringstream& iss) {
 
     // Check if the target is a channel
     if (target[0] == '#') {
-        // Remove the '#' from the channel name
-        //std::string channelName = target.substr(1);
-        std::string channelName = target;
-
         // Look for the channel by name
-        Channel* channel = getChannel(channelName);
-        if (channel) {
-            // Send the message to all clients in the channel
+        Channel* channel = getChannel(target);
+        if (channel) { // Send the message to all clients in the channel
             std::string formattedMsg = "Message from " + clients[client_fd]->getNick() + ": " + msg + "\n";
             channel->channelMessage(formattedMsg, *clients[client_fd]);
             return;
-        } else {
-            // If the channel is not found
-            send(client_fd, "Channel not found.\n", 19, 0);
-            return;
-        }
+        } else // If the channel is not found
+			return (sendString(client_fd, "Channel not found."));
     }
 
     // If the target is a client (not a channel), find the client by nickname
     for (std::map<int, Client*>::iterator it = clients.begin(); it != clients.end(); ++it) {
         if (it->second->getNick() == target) {
             // Send the private message to the target client
-            std::string formattedMsg = "Private message from " + clients[client_fd]->getNick() + ": " + msg + "\n";
-            send(it->first, formattedMsg.c_str(), formattedMsg.size(), 0);
-            return;
+            std::string formattedMsg = "Private message from " + clients[client_fd]->getNick() + ": " + msg;
+			return (sendString(it->first, formattedMsg));
         }
     }
 
     // If the target client was not found
-    send(client_fd, "Target client not found.\n", 26, 0);
+	sendString(client_fd, "Target client not found.");
 }
 
 
@@ -293,18 +362,14 @@ void Server::handleTopicCommand(int client_fd, std::istringstream& iss)
 	iss >> channel_name; // read channel name
 	std::getline(iss, new_topic); // read the new topic
 
-	if (new_topic.empty()) {
-		const std::string prompt = "Cannot set an empty topic!\n";
-		send(client_fd, prompt.c_str(), prompt.size(), 0);
-		return ;
-	}
-
+	if (new_topic.empty())
+		return (sendString(client_fd, "Cannot set an empty topic!"));
 	if (channels.find(channel_name) != channels.end()) {
 		Channel* channel = channels[channel_name]; // get channel
 		channel->setTopic(new_topic, *clients[client_fd]); // set the topic
 		channel->channelMessage("TOPIC " + channel_name + " : " + new_topic + "\n", *clients[client_fd]); // notify clients of the new topic
 	} else {
-		send(client_fd, "No such channel.\n", 18, 0); // notify client of error
+		sendString(client_fd, "No such channel.");
 	}
 }
 
@@ -353,12 +418,6 @@ void Server::logEvent(const std::string& level, const std::string& message) {
     }
 }
 
-std::string Server::intToString(int number) {
-    std::ostringstream oss;
-    oss << number;
-    return oss.str();
-}
-
 Client* Server::getClient(const int &fd) {
     // Iterate through the clients
     for (std::map<int, Client*>::iterator it = clients.begin(); it != clients.end(); ++it) {
@@ -376,14 +435,14 @@ Client* Server::getClient(const std::string& search) {
             return it->second; // Return the channel if found
         }
     }
-    return NULL; // Use NULL in place of nullptr
+	return NULL;
 }
 
 Client &Server::getClientRef(const int &fd) {
 	Client *found = getClient(fd);
 	if (!found)
 		throw (std::runtime_error("Error: client not found: fd " + intToString(fd)));
-	return (*found);
+	return (*getClient(fd));
 }
 
 Client &Server::getClientRef(const std::string &search) {
@@ -396,11 +455,10 @@ Client &Server::getClientRef(const std::string &search) {
 Channel* Server::getChannel(const std::string& search) {
     // Iterate through the channels
     for (std::map<std::string, Channel*>::iterator it = channels.begin(); it != channels.end(); ++it) {
-        if (it->first == search) {
+        if (it->first == search)
             return it->second; // Return the channel if found
-        }
     }
-    return NULL; // Use NULL in place of nullptr
+	return NULL;
 }
 
 Channel &Server::getChannelRef(const std::string &search) {

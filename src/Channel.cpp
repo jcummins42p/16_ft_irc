@@ -6,7 +6,7 @@
 /*   By: pyerima <pyerima@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/04 17:00:44 by mmakagon          #+#    #+#             */
-/*   Updated: 2024/12/04 18:21:38 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/05 19:46:35 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,8 +20,10 @@
 Channel::Channel(const std::string& in_name, const Client& creator, const std::string& password)
     : clnts_limit(MAX_CLIENTS), invite_only(false), topic_admins_only(false) {
     if (in_name.empty())
-        name = "Default chat";
-    else
+        name = "#Default chat";
+    else if (in_name[0] != '#')
+		throw std::invalid_argument("Channel name must begin with '#' character.");
+	else
         name = in_name;
 
     if (password.empty())
