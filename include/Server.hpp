@@ -6,7 +6,7 @@
 /*   By: pyerima <pyerima@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 14:48:02 by pyerima           #+#    #+#             */
-/*   Updated: 2024/12/05 19:21:59 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/06 10:08:30 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,7 @@
 #include <cstdio>
 #include "Client.hpp"
 #include "Channel.hpp"
+#include "Logger.hpp"
 #include "ft_irc.hpp" // Ensure it includes the MAX_CLIENTS definition
 
 #define BUFFER_SIZE 512 // Keep this here unless it's also defined elsewhere
@@ -42,7 +43,7 @@ private:
     unsigned int hashed_pass;
     std::map<int, Client*> clients;
     std::map<std::string, Channel*> channels;
-    std::ofstream logFile;
+	std::ofstream logFile;
 
 	// need to send and receive from this after polling rather than sending messages direct to fd with send()
 	// keep filling this until it's output in the polling
@@ -68,11 +69,10 @@ private:
     void handleKickCommand(int client_fd, std::istringstream& iss);
     void handleInviteCommand(int client_fd, std::istringstream& iss);
 
-    void logEvent(const std::string& level, const std::string& message);
+	Logger log; // NOT const
 
 	//	Wrapper for send to automaticall calculate size
 	void sendString(int client_fd, const std::string &message);
-    std::string intToString(int number);
 
 public:
 	//	Singleton server startup

@@ -6,7 +6,7 @@
 /*   By: pyerima <pyerima@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 14:48:02 by pyerima           #+#    #+#             */
-/*   Updated: 2024/12/05 20:43:28 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/06 10:09:43 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,9 +37,8 @@ Server::Server(int port, const std::string& in_pass) {
     bind(server_fd, (struct sockaddr *)&server_addr, sizeof(server_addr));
     listen(server_fd, 5);
 
-    // Open log file
-    logFile.open("server.log", std::ios::app);
-    logEvent("INFO", "Server initialized on port " + intToString(port));
+    // Log file now opened in Logger class constructor
+	log.info("Server initialized on port " + intToString(port));
 }
 
 Server::~Server(void) {
@@ -53,19 +52,13 @@ Server::~Server(void) {
     }
     close(server_fd);
 
-    logEvent("INFO", "Server shutting down.");
+    log.info("Server shutting down.");
     if (logFile.is_open()) {
         logFile.close();
     }
 }
 
 //	General functions
-
-std::string Server::intToString(int number) {
-    std::ostringstream oss;
-    oss << number;
-    return oss.str();
-}
 
 void Server::run() {
     fds[0].fd = server_fd;
@@ -75,11 +68,11 @@ void Server::run() {
         fds[i].fd = -1;
     }
 
-    logEvent("INFO", "Server is running. Waiting for connections...");
+    log.info("Server is running. Waiting for connections...");
     while (true) { // waits for results on the monitored file descriptors
         int ret = poll(fds, MAX_CLIENTS + 1, -1);
 		if (ret < 0) {
-			logEvent("ERROR", "poll() failed");
+			log.error("poll() failed");
 			break;
 		}
 
@@ -105,10 +98,10 @@ void Server::sendMessages(struct pollfd &fd)
 			const std::string &message = outBuffs[client_fd].front();
 			ssize_t bytes_out = send(client_fd, (message + "\n").c_str(), message.size() + 1, 0);
 			if (bytes_out > 0) {
-				logEvent("INFO", "Message sent to client " + intToString(client_fd) + ": " + message);
+				log.info("Message sent to client " + intToString(client_fd) + ": " + message);
 				outBuffs[client_fd].erase(outBuffs[client_fd].begin());
 			} else if (bytes_out < 0) {
-				logEvent("ERROR", "Failed to send message to client " + intToString(client_fd) + ": " + message);
+				log.error("Failed to send message to client " + intToString(client_fd) + ": " + message);
 			}
 		}
 		if (outBuffs[client_fd].empty()) {
@@ -140,11 +133,11 @@ void Server::sendString(int client_fd, const std::string &message) {
 void Server::acceptClient(struct pollfd* fds) {
     int client_fd = accept(server_fd, NULL, NULL);
     if (client_fd < 0) {
-        logEvent("ERROR", "Failed to accept client.");
+        log.error("Failed to accept client.");
         return;
     }
 
-    logEvent("INFO", "Client connected: FD " + intToString(client_fd));
+    log.info("Client connected: FD " + intToString(client_fd));
     clients[client_fd] = new Client(client_fd, *this);
 	sendString(client_fd, "Please enter the password: ");
 
@@ -162,9 +155,9 @@ void Server::handleClient(int client_fd) {
     ssize_t bytes_received = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
     if (bytes_received <= 0) {
         if (bytes_received == 0) {
-            logEvent("INFO", "Client disconnected: FD " + intToString(client_fd));
+            log.info("Client disconnected: FD " + intToString(client_fd));
         } else {
-            logEvent("ERROR", "Receive error on client: FD " + intToString(client_fd));
+            log.error("Receive error on client: FD " + intToString(client_fd));
         }
         close(client_fd);
         clients.erase(client_fd);
@@ -175,17 +168,17 @@ void Server::handleClient(int client_fd) {
     std::string message(buffer);
 	if (!message.empty() && message[message.length() - 1] == '\n')
 		message.erase(message.length() - 1);
-    logEvent("INFO", "Received message from FD " + intToString(client_fd) + ": " + message);
+    log.info("Received message from FD " + intToString(client_fd) + ": " + message);
 
     if (!clients[client_fd]->getAuthentificated()) {
         unsigned int in_hashed_pass = hashSimple(message);
 
         if (in_hashed_pass != this->hashed_pass) {
-            logEvent("WARNING", "Authentication failed for FD " + intToString(client_fd));
+            log.warn("Authentication failed for FD " + intToString(client_fd));
 			sendString(client_fd, "Wrong password, try again: ");
         } else {
             clients[client_fd]->setAuthentificated();
-            logEvent("INFO", "Client authenticated: FD " + intToString(client_fd));
+            log.info("Client authenticated: FD " + intToString(client_fd));
 			sendString(client_fd, "Authentication successful!");
         }
     } else {
@@ -221,7 +214,7 @@ void Server::processMessage(int client_fd, const std::string& message) {
     } else if (command == "INVITE") {
         handleInviteCommand(client_fd, iss);
     } else {
-        logEvent("INFO", "Unhandled message from FD " + intToString(client_fd) + ": " + message);
+        log.info("Unhandled message from FD " + intToString(client_fd) + ": " + message);
     }
 }
 
@@ -231,11 +224,11 @@ void Server::handleNickCommand(int client_fd, std::istringstream& iss)
 	iss >> in_nick; // Read the nickname from the stream
 	try {
 		clients[client_fd]->setNick(in_nick);
-		logEvent("INFO", "Client " + intToString(client_fd) + " set nickname to " + clients[client_fd]->getNick());
+		log.info("Client " + intToString(client_fd) + " set nickname to " + clients[client_fd]->getNick());
 		sendString(client_fd, "Successfully set nickname to " + in_nick );
 	}
 	catch ( std::invalid_argument &e ) {
-		logEvent("WARNING", "Client " + intToString(client_fd) + " failed to set empty nickname");
+		log.warn("Client " + intToString(client_fd) + " failed to set empty nickname");
 		sendString(client_fd, e.what());
 	}
 	catch ( std::exception &e ) {
@@ -249,11 +242,11 @@ void Server::handleUserCommand(int client_fd, std::istringstream& iss)
 	iss >> in_username; // Read the username from the stream
 	try {
 		clients[client_fd]->setUser(in_username);
-		logEvent("INFO", "Client " + intToString(client_fd) + " set username to " + clients[client_fd]->getUser());
+		log.info("Client " + intToString(client_fd) + " set username to " + clients[client_fd]->getUser());
 		sendString(client_fd, "Successfully set username to " + in_username );
 	}
 	catch ( std::invalid_argument &e ) {
-		logEvent("WARNING", "Client " + intToString(client_fd) + " failed to set empty username");
+		log.warn("Client " + intToString(client_fd) + " failed to set empty username");
 		sendString(client_fd, e.what());
 	}
 	catch ( std::exception &e ) {
@@ -265,7 +258,7 @@ Channel *Server::createChannel(int client_fd, std::string chName, std::string pa
 	Channel *output = new Channel(chName, *clients[client_fd], passwd);
 	channels[chName] = output;  // Add the new channel to the map
 	sendString(client_fd, "Made new channel successfully.");
-	logEvent("INFO", "Client " + intToString(client_fd) + " created channel " + output->getName());
+	log.info("Client " + intToString(client_fd) + " created channel " + output->getName());
 
 	return (output);
 }
@@ -281,17 +274,17 @@ void Server::handleJoinCommand(int client_fd, std::istringstream& iss) {
 	if (channel == NULL) {
 		try { channel = createChannel(client_fd, channelName, password); }
 		catch ( std::invalid_argument &e ) {
-			logEvent("ERROR", "Client " + intToString(client_fd) + " failed to create channel " + channelName + ": " + std::string(e.what()));
+			log.error("Client " + intToString(client_fd) + " failed to create channel " + channelName + ": " + std::string(e.what()));
 			sendString(client_fd, e.what());
 		}
     } else {
         // Otherwise, join the existing channel
         if (channel->joinChannel(*clients[client_fd], password)) {
-			logEvent("INFO", "Client " + intToString(client_fd) + " joined existing channel " + channel->getName());
+			log.info("Client " + intToString(client_fd) + " joined existing channel " + channel->getName());
 			sendString(client_fd, "Joined channel successfully.");
         } else {
 			sendString(client_fd, "Failed to join channel.");
-			logEvent("ERROR", "Client " + intToString(client_fd) + " failed to join channel " + channel->getName());
+			log.error("Client " + intToString(client_fd) + " failed to join channel " + channel->getName());
         }
     }
 }
@@ -397,25 +390,6 @@ void Server::handleInviteCommand(int client_fd, std::istringstream& iss) {
 	iss >> target_nick >> channel_name; // Read target nickname and channel name
 	// Simplified handling
 	std::cout << "Client " << client_fd << " invited " << target_nick << " to channel " << channel_name << std::endl;
-}
-
-// Centralized logging function
-void Server::logEvent(const std::string& level, const std::string& message) {
-    time_t now = time(0);
-    struct tm* localTime = localtime(&now);
-
-    char buf[20];
-    strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", localTime);
-
-    std::string logMessage = "[" + std::string(buf) + "] [" + level + "] " + message;
-
-    // Print to terminal
-    std::cout << logMessage << std::endl;
-
-    // Write to log file
-    if (logFile.is_open()) {
-        logFile << logMessage << std::endl;
-    }
 }
 
 Client* Server::getClient(const int &fd) {
