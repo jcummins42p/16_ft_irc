@@ -6,7 +6,7 @@
 /*   By: pyerima <pyerima@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/04 14:58:10 by mmakagon          #+#    #+#             */
-/*   Updated: 2024/12/04 17:16:52 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/06 18:14:38 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,8 @@
 
 class Channel {
 private:
+	Server &server;
+
     std::string		name;
     std::string		topic;
     unsigned int	hashed_pass;
@@ -32,12 +34,12 @@ private:
     std::set<const Client*> clients;
     std::set<const Client*> admins;
     std::set<const Client*> invited_clients; // Declare the invited clients.
-    //std::set<Client*> clients;
-    ssize_t internalMessage(const Client& client, const std::string message) const;
+											 //
+    void internalMessage(const Client& client, const std::string message) const;
 
 public:
     // Constructor
-    Channel(const std::string& in_name, const Client& creator, const std::string& password);
+    Channel(Server &server, const std::string& in_name, const Client& creator, const std::string& password);
 
     // Destructor
     ~Channel();
@@ -65,7 +67,10 @@ public:
     void inviteClient(const Client& in_client, const Client& admin); // Declare the inviteClient method.
 
     // Group messaging
-    void channelMessage(const std::string message, const Client& sender) const;
+    void channelMessage( Server &server, const std::string &message, const Client &sender) ;
+
+	// Info
+	bool containsMember(const Client &client ) const ;
 };
 
 #endif

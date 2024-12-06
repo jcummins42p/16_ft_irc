@@ -6,7 +6,7 @@
 /*   By: pyerima <pyerima@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 14:48:02 by pyerima           #+#    #+#             */
-/*   Updated: 2024/12/06 10:08:30 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/06 17:45:21 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,12 +47,13 @@ private:
 
 	// need to send and receive from this after polling rather than sending messages direct to fd with send()
 	// keep filling this until it's output in the polling
-	std::map<int, std::vector<std::string> > inBuffs;
+	std::map<int, std::string > inBuffs;
 	std::map<int, std::vector<std::string> > outBuffs;
 
     void acceptClient(struct pollfd* fds);
+	void handleDisconnect(int client_fd, int bytes_received);
     void handleClient(int client_fd);
-	void sendMessages(struct pollfd &fd);
+	int handleAuth(int client_fd, const std::string &message);
     void processMessage(int client_fd, const std::string& message);
 
 	Channel *createChannel(int client_fd, std::string chName, std::string passwd);
@@ -72,7 +73,6 @@ private:
 	Logger log; // NOT const
 
 	//	Wrapper for send to automaticall calculate size
-	void sendString(int client_fd, const std::string &message);
 
 public:
 	//	Singleton server startup
@@ -80,12 +80,16 @@ public:
     ~Server(void);
     void run();
 
+	void sendString(int client_fd, const std::string &message) ;
+
 	Client *getClient(const std::string &search);
 	Client *getClient(const int &fd);
 	Client &getClientRef(const std::string &search);
 	Client &getClientRef(const int &fd);
 	Channel *getChannel(const std::string &search);
 	Channel &getChannelRef(const std::string &search);
+
+	void sendMessages(struct pollfd &fd);
 };
 
 #endif

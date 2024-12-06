@@ -6,7 +6,7 @@
 /*   By: jcummins <jcummins@student.42prague.c      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/04 17:43:14 by jcummins          #+#    #+#             */
-/*   Updated: 2024/12/06 10:03:49 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/06 15:38:08 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,14 +31,14 @@ void Logger::warn( const std::string &message ) {
 }
 
 void Logger::output( const std::string &message ) {
-    // Print to terminal
+	// Print to terminal
 	//std::string logMessage = message;
-    std::cout << message << std::endl;
+	std::cout << message << std::endl;
 
-    // Write to log file - change this to throw exception
-    if (logFile.is_open()) {
-        logFile << static_cast<std::string>(message) << std::endl;
-    }
+	// Write to log file - change this to throw exception
+	if (logFile.is_open()) {
+		logFile << static_cast<std::string>(message) << std::endl;
+	}
 	else
 		std::cout << "Log file not open, failed to write log\n";
 }

@@ -6,7 +6,7 @@
 /*   By: mmakagon <mmakagon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 14:48:02 by pyerima           #+#    #+#             */
-/*   Updated: 2024/12/05 20:04:43 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/06 19:10:03 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 
 // Construct - destruct
 
-Client::Client(int fd, const Server &server) :
+Client::Client(int fd, Server &server) :
 	fd(fd),
 	is_Authentificated(false),
 	server(server)
@@ -25,7 +25,6 @@ Client::~Client( void ) {
 	std::cout << "Reminder that you need to implement Client destructor" << std::endl;
 }
 
-
 // Getter - setters
 const int&			Client::getFd(void) const { return (fd); }
 const std::string&	Client::getNick(void) const { return nick; }
@@ -34,18 +33,54 @@ bool				Client::getAuthentificated(void) const { return is_Authentificated; }
 
 void	Client::setAuthentificated(void) { is_Authentificated = true; }
 
+static void validateUser( const std::string &name ) {
+	if (name.empty())
+		throw std::invalid_argument("Can't set an empty username!");
+	for (unsigned long i = 0; i < name.size(); i++) {
+		if (name[i] == ',')
+			throw std::invalid_argument("User name must not contain ','");
+		if (name[i] == ' ')
+			throw std::invalid_argument("User name must not contain ' '");
+	}
+	if (caseInsCompare(name, "admin") || caseInsCompare(name, "root"))
+		throw std::invalid_argument("Inappropriate username");
+}
+
+static void validateNick( const std::string &nick ) {
+	if (nick.empty())
+		throw std::invalid_argument("Can't set an empty nick");
+	if (!isalpha(nick[0]))
+		throw std::invalid_argument("Nick must begin with a letter");
+	for (unsigned long i = 0; i < nick.size(); i++) {
+		if (nick[i] == ',')
+			throw std::invalid_argument("Nick name must not contain ','");
+		if (nick[i] == ' ')
+			throw std::invalid_argument("Nick name must not contain ' '");
+	}
+	if (caseInsCompare(nick, "admin") || caseInsCompare(nick, "root")) // if same, returns true
+		throw std::invalid_argument("Inappropriate nickname");
+}
+
 void	Client::setNick(const std::string& in_nick) {
-	if (in_nick.empty())
-		throw std::invalid_argument("Can't set an empty nick!");
+	validateNick(in_nick);
 	nick = in_nick;
 }
 
 void	Client::setUser(const std::string& in_username) {
-	if (in_username.empty())
-		throw std::invalid_argument("Can't set an empty username!");
+	validateUser(in_username);
 	user = in_username;
 }
 
 const Server &Client::getServer( void ) {
 	return this->server;
+}
+
+bool	Client::isInChannel( const Channel &channel ) const {
+	return (channel.containsMember(*this));
+}
+
+bool	Client::isInChannel( const Channel *channel ) const {
+	if (!channel)
+		return (false);
+	return (channel->containsMember(*this));
 }

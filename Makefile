@@ -6,7 +6,7 @@
 #    By: mmakagon <mmakagon@student.42.com>         +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/04 14:17:14 by jcummins          #+#    #+#              #
-#    Updated: 2024/12/06 09:56:34 by jcummins         ###   ########.fr        #
+#    Updated: 2024/12/06 15:33:47 by jcummins         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -17,7 +17,12 @@ SRC_DIR = src
 OBJ_DIR = obj
 INC_DIR = include
 
-SRCS = main.cpp Channel.cpp Client.cpp hashSimple.cpp Server.cpp simpleHash.cpp Logger.cpp utils.cpp
+SRCS = main.cpp \
+	   Channel.cpp \
+	   Client.cpp \
+	   Server.cpp ServerGetters.cpp ServerCommands.cpp\
+	   Logger.cpp \
+	   utils.cpp
 OBJS = $(addprefix $(OBJ_DIR)/, $(SRCS:.cpp=.o))
 hEADS = ft_irc.hpp Channel.hpp Client.hpp Server.hpp Logger.hpp utils.hpp
 MAKE = ./Makefile
