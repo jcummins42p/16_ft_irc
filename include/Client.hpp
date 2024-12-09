@@ -6,7 +6,7 @@
 /*   By: mmakagon <mmakagon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 14:48:02 by pyerima           #+#    #+#             */
-/*   Updated: 2024/12/09 17:46:48 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/09 18:21:49 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,9 @@
 
 class Server;
 class Channel;
+
+#define NICK_MAX_LEN 12
+#define USER_MAX_LEN 12
 
 class Client {
 public:
@@ -49,6 +52,8 @@ private:
 	std::string		user;
 	bool			is_authenticated;
 	bool			is_registered;
+
+	const static std::string namechars;
 
 	Server &server;
 };

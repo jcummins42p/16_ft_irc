@@ -6,7 +6,7 @@
 /*   By: jcummins <jcummins@student.42prague.com>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/06 15:21:19 by jcummins          #+#    #+#             */
-/*   Updated: 2024/12/09 17:12:41 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/09 18:48:10 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,9 @@ void Server::handleNickCommand(int client_fd, std::istringstream& iss)
 	try {
 		clients[client_fd]->setNick(in_nick);
 		log.info("Client " + intToString(client_fd) + " set nickname to " + clients[client_fd]->getNick());
-		sendString(client_fd, "Successfully set nickname to " + in_nick );
+		if (in_nick.size() > clients[client_fd]->getNick().size())
+			sendString(client_fd, "Nickname too long, truncating to fit " + intToString(NICK_MAX_LEN) + " char limit");
+		sendString(client_fd, "Successfully set nickname to " + clients[client_fd]->getNick() );
 	}
 	catch ( std::invalid_argument &e ) {
 		log.warn("Client " + intToString(client_fd) + " failed to set empty nickname");
@@ -37,7 +39,9 @@ void Server::handleUserCommand(int client_fd, std::istringstream& iss)
 	try {
 		clients[client_fd]->setUser(in_username);
 		log.info("Client " + intToString(client_fd) + " set username to " + clients[client_fd]->getUser());
-		sendString(client_fd, "Successfully set username to " + in_username );
+		if (in_username.size() > clients[client_fd]->getUser().size())
+			sendString(client_fd, "Username too long, truncating to fit " + intToString(USER_MAX_LEN) + " char limit");
+		sendString(client_fd, "Successfully set username to " + clients[client_fd]->getUser());
 	}
 	catch ( std::invalid_argument &e ) {
 		log.warn("Client " + intToString(client_fd) + " failed to set empty username");
