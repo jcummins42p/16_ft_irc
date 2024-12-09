@@ -6,7 +6,7 @@
 /*   By: pyerima <pyerima@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/04 17:00:44 by mmakagon          #+#    #+#             */
-/*   Updated: 2024/12/06 18:35:23 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/09 17:10:32 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -133,16 +133,16 @@ bool	Channel::addAdmin(const Client& in_client, const Client& admin) {
 bool Channel::kickClient(const Client& target, const Client& admin) {
 	try {
 		if (admins.find(&admin) == admins.end())
-			throw (std::runtime_error("Error: kickClient: admin rights required"));
+			throw (std::runtime_error("admin rights required"));
 		if (clients.find(&target) == clients.end())
-			throw (std::runtime_error("Error: kickClient: user not in channel"));
+			throw (std::runtime_error("user not in channel"));
 		if (admins.find(&target) != admins.end())
-			throw (std::runtime_error("Error: kickClient: cannot kick admin"));
+			throw (std::runtime_error("cannot kick admin"));
 		internalMessage(target, "You have been kicked from " + getName() + " by " + admin.getNick() + ", bye.");
 		clients.erase(&target);  // Remove the user from the channel
 	}
 	catch ( std::runtime_error &e ) {
-		internalMessage(admin, e.what());
+		internalMessage(admin, "Error: Kickclient:" + std::string(e.what()));
 	}
 	return true;
 }
@@ -240,7 +240,7 @@ void Channel::create(const Client& creator, const std::string& password) {
 
 /* GROUP MESSAGES */
 
-void Channel::channelMessage(Server &server, const std::string &message, const Client &sender) {
+void Channel::channelMessage(const std::string &message, const Client &sender) {
 	for (std::set<const Client*>::iterator it = clients.begin(); it != clients.end(); ++it) {
 		// Don't send the message back to the sender
 		if (*it != &sender) {

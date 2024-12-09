@@ -6,7 +6,7 @@
 /*   By: pyerima <pyerima@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 14:48:02 by pyerima           #+#    #+#             */
-/*   Updated: 2024/12/06 17:45:21 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/09 17:39:10 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,6 +54,7 @@ private:
 	void handleDisconnect(int client_fd, int bytes_received);
     void handleClient(int client_fd);
 	int handleAuth(int client_fd, const std::string &message);
+	void promptRegistration(int client_fd);
     void processMessage(int client_fd, const std::string& message);
 
 	Channel *createChannel(int client_fd, std::string chName, std::string passwd);

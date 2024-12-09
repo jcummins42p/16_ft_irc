@@ -6,7 +6,7 @@
 /*   By: mmakagon <mmakagon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 14:48:02 by pyerima           #+#    #+#             */
-/*   Updated: 2024/12/06 18:12:54 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/09 17:46:48 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,9 +29,13 @@ public:
 	const int&			getFd(void) const;
 	const std::string&	getNick(void) const;
 	const std::string&	getUser(void) const;
-	bool				getAuthentificated(void) const;
 
-	void				setAuthentificated(void);
+	void				setAuthenticated(void);
+	bool				isAuthenticated(void) const;
+
+	void	setRegistered(void);
+	bool	isRegistered(void) const;
+
 	void				setNick(const std::string& in_nick);
 	void				setUser(const std::string& in_username);
 	const Server		&getServer( void );
@@ -43,7 +47,8 @@ private:
 	const int		fd;
 	std::string		nick;
 	std::string		user;
-	bool			is_Authentificated;
+	bool			is_authenticated;
+	bool			is_registered;
 
 	Server &server;
 };

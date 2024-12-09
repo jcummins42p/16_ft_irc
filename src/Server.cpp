@@ -6,7 +6,7 @@
 /*   By: pyerima <pyerima@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 14:48:02 by pyerima           #+#    #+#             */
-/*   Updated: 2024/12/06 18:15:09 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/09 17:48:08 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -189,20 +189,33 @@ void Server::handleClient(int client_fd) {
 
 int Server::handleAuth(int client_fd, const std::string &message)
 {
-	if (!clients[client_fd]->getAuthentificated()) {
+	if (!clients[client_fd]->isAuthenticated()) {
 		unsigned int in_hashed_pass = hashSimple(message);
 
 		if (in_hashed_pass != this->hashed_pass) {
 			log.warn("Authentication failed for FD " + intToString(client_fd));
 			sendString(client_fd, "Wrong password, try again: ");
 		} else {
-			clients[client_fd]->setAuthentificated();
+			clients[client_fd]->setAuthenticated();
 			log.info("Client authenticated: FD " + intToString(client_fd));
 			sendString(client_fd, "Authentication successful!");
 			return (1);
 		}
 	}
 	return (0);
+}
+
+void Server::promptRegistration(int client_fd) {
+	std::string message = "You are not registered. Please set a ";
+	if (getClientRef(client_fd).getNick().empty()) {
+		message += "NICK ";
+		if (getClientRef(client_fd).getUser().empty())
+		message += "and USER ";
+	}
+	else
+		message += "USER ";
+	message += "name to access irc commands";
+	sendString(client_fd, message);
 }
 
 void Server::processMessage(int client_fd, const std::string& message) {
@@ -214,6 +227,8 @@ void Server::processMessage(int client_fd, const std::string& message) {
 		handleNickCommand(client_fd, iss);
 	} else if (command == "USER") {
 		handleUserCommand(client_fd, iss);
+	} else if (!getClientRef(client_fd).isRegistered()) {
+		promptRegistration(client_fd);
 	} else if (command == "JOIN") {
 		handleJoinCommand(client_fd, iss);
 	} else if (command == "PART") {

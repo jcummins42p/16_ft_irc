@@ -6,7 +6,7 @@
 /*   By: jcummins <jcummins@student.42prague.com>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/06 15:21:19 by jcummins          #+#    #+#             */
-/*   Updated: 2024/12/06 17:34:35 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/09 17:12:41 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,7 +84,7 @@ void Server::handlePartCommand(int client_fd, std::istringstream& iss)
 		//clients[client_fd]->channels.erase(channel_name);
 		//clients[client_fd]->leaveChannel(channel_name);
 		sendString(client_fd, "Left channel: " + channel_name );
-		channels[channel_name]->channelMessage(*this, clients[client_fd]->getNick() + " has left the channel.", *clients[client_fd]);
+		channels[channel_name]->channelMessage(clients[client_fd]->getNick() + " has left the channel.", *clients[client_fd]);
 	} else {
 		sendString(client_fd, "Channel not found");
 	}
@@ -107,8 +107,8 @@ void Server::handlePrivmsgCommand(int client_fd, std::istringstream& iss) {
 		Channel* channel = getChannel(target);
 		if (!getClientRef(client_fd).isInChannel(channel))
 			return (sendString(client_fd, "Not in channel " + target));
-		std::string formattedMsg = "Message from " + clients[client_fd]->getNick() + ": " + msg + "\n";
-		channel->channelMessage(*this, formattedMsg, *clients[client_fd]);
+		std::string formattedMsg = "Message from " + clients[client_fd]->getNick() + ": " + msg;
+		channel->channelMessage(formattedMsg, *clients[client_fd]);
 		return;
 	}
 
@@ -143,7 +143,7 @@ void Server::handleTopicCommand(int client_fd, std::istringstream& iss)
 	if (channels.find(channel_name) != channels.end()) {
 		Channel* channel = channels[channel_name]; // get channel
 		channel->setTopic(new_topic, *clients[client_fd]); // set the topic
-		channel->channelMessage(*this, "TOPIC " + channel_name + " : " + new_topic + "\n", *clients[client_fd]); // notify clients of the new topic
+		channel->channelMessage("TOPIC " + channel_name + " : " + new_topic + "\n", *clients[client_fd]); // notify clients of the new topic
 	} else {
 		sendString(client_fd, "No such channel.");
 	}

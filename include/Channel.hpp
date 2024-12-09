@@ -6,7 +6,7 @@
 /*   By: pyerima <pyerima@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/04 14:58:10 by mmakagon          #+#    #+#             */
-/*   Updated: 2024/12/06 18:14:38 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/09 17:10:54 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,7 +67,7 @@ public:
     void inviteClient(const Client& in_client, const Client& admin); // Declare the inviteClient method.
 
     // Group messaging
-    void channelMessage( Server &server, const std::string &message, const Client &sender) ;
+    void channelMessage( const std::string &message, const Client &sender) ;
 
 	// Info
 	bool containsMember(const Client &client ) const ;

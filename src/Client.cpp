@@ -6,7 +6,7 @@
 /*   By: mmakagon <mmakagon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 14:48:02 by pyerima           #+#    #+#             */
-/*   Updated: 2024/12/06 19:10:03 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/09 17:50:29 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,7 @@
 
 Client::Client(int fd, Server &server) :
 	fd(fd),
-	is_Authentificated(false),
+	is_authenticated(false),
 	server(server)
 {}
 
@@ -29,9 +29,12 @@ Client::~Client( void ) {
 const int&			Client::getFd(void) const { return (fd); }
 const std::string&	Client::getNick(void) const { return nick; }
 const std::string&	Client::getUser(void) const { return user; }
-bool				Client::getAuthentificated(void) const { return is_Authentificated; }
 
-void	Client::setAuthentificated(void) { is_Authentificated = true; }
+void	Client::setAuthenticated(void) { is_authenticated = true; }
+bool	Client::isAuthenticated(void) const { return is_authenticated; }
+
+void	Client::setRegistered(void) { is_registered = true; }
+bool	Client::isRegistered(void) const { return (is_registered); }
 
 static void validateUser( const std::string &name ) {
 	if (name.empty())
@@ -63,11 +66,15 @@ static void validateNick( const std::string &nick ) {
 
 void	Client::setNick(const std::string& in_nick) {
 	validateNick(in_nick);
+	if (!getUser().empty())
+		setRegistered();
 	nick = in_nick;
 }
 
 void	Client::setUser(const std::string& in_username) {
 	validateUser(in_username);
+	if (!getNick().empty())
+		setRegistered();
 	user = in_username;
 }
 
