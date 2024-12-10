@@ -6,7 +6,7 @@
 /*   By: jcummins <jcummins@student.42prague.c      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/04 17:43:14 by jcummins          #+#    #+#             */
-/*   Updated: 2024/12/06 19:13:26 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/10 17:11:56 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,7 +38,7 @@ std::string intToString( int number ) {
 	return oss.str();
 }
 
-bool	caseInsCompare( const std::string &a, const std::string &b) {
+bool caseInsCompare( const std::string &a, const std::string &b) {
 	unsigned long size = a.size();
 	if (size != b.size())
 		return (false);

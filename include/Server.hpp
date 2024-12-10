@@ -6,7 +6,7 @@
 /*   By: pyerima <pyerima@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 14:48:02 by pyerima           #+#    #+#             */
-/*   Updated: 2024/12/10 14:15:01 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/10 16:47:30 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,6 +64,7 @@ private:
     void handleUserCommand(int client_fd, std::istringstream& iss);
     void handleJoinCommand(int client_fd, std::istringstream& iss);
     void handlePartCommand(int client_fd, std::istringstream& iss);
+	bool sendMsgToChannel(int client_fd, const std::string &target, const std::string &msg);
     void handlePrivmsgCommand(int client_fd, std::istringstream& iss);
     void handleQuitCommand(int client_fd);
     void handleTopicCommand(int client_fd, std::istringstream& iss);

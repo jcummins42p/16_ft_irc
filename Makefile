@@ -6,7 +6,7 @@
 #    By: mmakagon <mmakagon@student.42.com>         +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/04 14:17:14 by jcummins          #+#    #+#              #
-#    Updated: 2024/12/06 15:33:47 by jcummins         ###   ########.fr        #
+#    Updated: 2024/12/10 20:46:50 by jcummins         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -18,7 +18,7 @@ OBJ_DIR = obj
 INC_DIR = include
 
 SRCS = main.cpp \
-	   Channel.cpp \
+	   Channel.cpp ChannelModes.cpp\
 	   Client.cpp \
 	   Server.cpp ServerGetters.cpp ServerCommands.cpp\
 	   Logger.cpp \

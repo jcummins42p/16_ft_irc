@@ -6,7 +6,7 @@
 /*   By: pyerima <pyerima@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/04 17:00:44 by mmakagon          #+#    #+#             */
-/*   Updated: 2024/12/10 13:43:51 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/10 22:06:19 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,48 +15,61 @@
 #include "ft_irc.hpp"
 #include <sys/socket.h>
 
+
+const static std::string allowedchars = "`|^_-{}[]\\!@#$%&*()+=.";
+
 /* CONSTRUCT - DESTRUCT */
 
-static void validateName( const std::string &name ) {
+//	This is a static class function to check if a server name is valid to search for
+void Channel::validateName(const std::string &name ) {
 	if (name[0] != '#' && name[0] != '&')
-		throw std::invalid_argument("Channel name must begin with '#' or '&'.");
+		throw std::invalid_argument("Static Channel name must begin with '#' or '&'.");
 	for (unsigned long i = 0; i < name.size(); i++) {
-		if (name[i] == ',')
-			throw std::invalid_argument("Channel name must not contain ','.");
-		if (name[i] == ' ')
-			throw std::invalid_argument("Channel name must not contain ' '.");
+		if (!isalnum(name[i]) && (allowedchars.find(name[i]) == std::string::npos))
+			throw std::invalid_argument("User name must not contain '" + std::string(1, name[i]) + "'");
 	}
+}
+
+//	This is used during construction to check that the name is legal and available
+static void validateNameHelper(const Server &server, const std::string &name ) {
+	if (name[0] != '#' && name[0] != '&')
+		throw std::invalid_argument("Helper Channel name must begin with '#' or '&'.");
+	for (unsigned long i = 0; i < name.size(); i++) {
+		if (!isalnum(name[i]) && (allowedchars.find(name[i]) == std::string::npos))
+			throw std::invalid_argument("User name must not contain '" + std::string(1, name[i]) + "'");
+	}
+	if (server.getChannel(name))
+		throw std::invalid_argument(name + " already in use ");
 }
 
 Channel::Channel( Server &server, const std::string& in_name, const Client& creator, const std::string& password) :
 	server(server),
 	clnts_limit(MAX_CLIENTS),
 	invite_only(false),
-	topic_admins_only(false)
+	topic_admins_only(true),
+	pass_required(true)
 {
 	if (in_name.empty())
-		name = "#Default chat";
+		name = "#Default";
 	else
-		validateName(in_name);
-	name = in_name;
+		name = in_name;
+	validateNameHelper(server, name);
 
 	if (password.empty())
-		throw std::invalid_argument("Password must not be empty when creating a channel.");
-
-	hashed_pass = hashSimple(password);  // Set the hashed password for the channel.
+		pass_required = false;
+	else
+		hashed_pass = hashSimple(password);  // Set the hashed password for the channel.
 	clients.insert(&creator);		   // Add the creator as the first client.
 	admins.insert(&creator);			// Set the creator as the initial admin.
 }
 
 Channel::~Channel(void) {}
 
-
 /* PRIVATE METHODS */
 
 void Channel::internalMessage(const Client& client, const std::string message) const {
 	return server.sendString(client.getFd(), message.c_str());
 }
-
 
 /* GETTERS */
 
@@ -67,87 +80,59 @@ const std::string&	Channel::getTopic(void) const { return (topic); }
 
 /* SETTERS */
 
-bool	Channel::setTopic(const std::string& in_topic, const Client& admin) {
-	if (topic_admins_only && admins.find(&admin) == admins.end()) {
-		internalMessage(admin, "You don't have admin rights!");
-		return (false);
-	}
-	else if (in_topic.empty()) {
-		internalMessage(admin, "Can't set an empty topic!");
-		return (false);
-	}
-	else {
-		topic = in_topic;
-		return (true);
-	}
+void	Channel::setTopic(const std::string& in_topic, const Client& admin) {
+	if (topic_admins_only && admins.find(&admin) == admins.end())
+		throw std::runtime_error ("Admin rights required");
+	else if (in_topic.empty())
+		throw std::runtime_error ("Can't set an empty topic");
+	topic = in_topic;
 }
 
-bool	Channel::setPass(std::string& in_pass, const Client& admin) {
-	if (admins.find(&admin) == admins.end()) {
-		internalMessage(admin, "You don't have admin rights!");
-		return (false);
-	}
-	else if (in_pass.empty()) {
-		internalMessage(admin, "Can't set an empty password!");
-		return (false);
-	}
-	else {
-		hashed_pass = hashSimple(in_pass);
-		return (true);
-	}
+void	Channel::setPass(std::string& in_pass, const Client& admin) {
+	if (admins.find(&admin) == admins.end())
+		throw std::runtime_error ("Admin rights required");
+	else if (in_pass.empty())
+		throw std::runtime_error ("Can't set an empty password!");
+	hashed_pass = hashSimple(in_pass);
 }
-
 
 /* ADMIN FUNCTIONS */
 
-bool	Channel::addClient(const Client& in_client, const Client& admin) {
-	if (admins.find(&admin) == admins.end()) {
-		internalMessage(admin, "You don't have admin rights!");
-		return (false);
-	}
-	else if (clients.size() >= clnts_limit) {
-		internalMessage(admin, "Can't add a client - the channel is full!");
-		return (false);
-	}
-	else {
-		clients.insert(&in_client);
-		return (true);
-	}
+void	Channel::addClient(const Client& in_client, const Client& admin) {
+	if (admins.find(&admin) == admins.end())
+		throw std::runtime_error ("Admin rights required");
+	else if (clients.size() >= clnts_limit)
+		throw std::runtime_error ("The channel is full!");
+	clients.insert(&in_client);
 }
 
-bool	Channel::addAdmin(const Client& in_client, const Client& admin) {
-	if (admins.find(&admin) == admins.end()) {
-		internalMessage(admin, "You don't have admin rights!");
-		return (false);
-	}
-	else if (clients.find(&in_client) == clients.end()) {
-		internalMessage(admin, "Can't make an admin - the client is not in the channel!");
-		return (false);
-	}
-	else {
-		admins.insert(&in_client);
-		return (true);
-	}
+void	Channel::addAdmin(const Client& in_client, const Client& admin) {
+	if (admins.find(&admin) == admins.end())
+		throw std::runtime_error("Admin rights required");
+	else if (clients.find(&in_client) == clients.end())
+		throw std::runtime_error("User is not in the channel!");
+	admins.insert(&in_client);
 }
 
 void Channel::kickClient(const Client& target, const Client& admin) {
 	if (admins.find(&admin) == admins.end())
-		throw (std::runtime_error("admin rights required"));
+		throw (std::runtime_error("Admin rights required"));
 	if (clients.find(&target) == clients.end())
-		throw (std::runtime_error("user not in channel"));
+		throw (std::runtime_error("User is not in channel"));
 	if (admins.find(&target) != admins.end())
-		throw (std::runtime_error("cannot kick admin"));
-	internalMessage(target, "You have been kicked from " + getName() + " by " + admin.getNick() + ", bye.");
+		throw (std::runtime_error("Cannot kick admin"));
+	internalMessage(target, "You have been kicked from " + getName()
+							+ " by " + admin.getNick() + ", bye.");
 	clients.erase(&target);  // Remove the user from the channel
 }
 
 void Channel::kickAdmin(const Client& target, const Client& admin) {
 	if (admins.find(&admin) == admins.end())
-		throw (std::runtime_error("admin rights required"));
+		throw (std::runtime_error("Admin rights required"));
 	else if (clients.find(&target) == clients.end())
-		throw (std::runtime_error("user not in channel"));
+		throw (std::runtime_error("User not in channel"));
 	else if (admins.find(&target) == admins.end())
-		throw (std::runtime_error("cannot kickadmin - user is not admin"));
+		throw (std::runtime_error("Target is not admin"));
 	admins.erase(&target);  // Remove the user from the admin list
 
 	// If all admins are removed, assign a new admin if there are clients left.
@@ -160,43 +145,24 @@ void Channel::kickAdmin(const Client& target, const Client& admin) {
 
 /* JOIN - LEAVE */
 
-bool Channel::joinChannel(const Client& in_client, const std::string& password) {
+void Channel::joinChannel(const Client& in_client, const std::string& password) {
 	// Check if the channel is invite-only and if the client is invited.
-	if (invite_only && invited_clients.find(&in_client) == invited_clients.end()) {
-		internalMessage(in_client, "Sorry, the chat is invite-only!");
-		return false;
-	}
-
-	// If the channel isn't invite-only, check the password.
-	if (!invite_only) {
-		unsigned int hashed_attempt = hashSimple(password);
-		if (hashed_attempt != hashed_pass) {
-			internalMessage(in_client, "Incorrect password!");
-			return false;
+	if (clients.find(&in_client) != clients.end())
+		throw std::runtime_error("Already a member of " + getName());
+	if (invite_only && invited_clients.find(&in_client) == invited_clients.end())
+		throw std::runtime_error(getName() + " is invite-only!");
+	if (clients.size() >= clnts_limit) // If the channel is full, deny the client.
+		throw std::runtime_error(getName() + " is already full!");
+	if (!invite_only && pass_required) { // If the channel isn't invite-only, check the password.
+		if (hashed_pass != hashSimple(password)) {
+			throw std::runtime_error("Incorrect password for " + getName());
 		}
 	}
-
-	// If the channel is full, deny the client.
-	if (clients.size() >= clnts_limit) {
-		internalMessage(in_client, "Sorry, the chat is full!");
-		return false;
-	}
-
 	// Add the client to the channel.
 	clients.insert(&in_client);
-	return true;
 }
 
-// // Function to create a new channel
-// void Channel::create(const Client& creator, const std::string& password) {
-//	 // This function initializes the channel with a password and sets the creator as the admin
-//	 hashed_pass = hashSimple(password);  // Store hashed password
-//	 clients.insert(&creator);			// Add the creator to the channel
-//	 admins.insert(&creator);			 // Set creator as an admin
-// }
-
-
-bool Channel::leaveChannel(const Client& in_client) {
+void Channel::leaveChannel(const Client& in_client) {
 	admins.erase(&in_client);  // Remove admin rights if applicable.
 	clients.erase(&in_client); // Remove the client from the channel.
 
@@ -205,21 +171,11 @@ bool Channel::leaveChannel(const Client& in_client) {
 		admins.insert(*clients.begin());  // Assign the first client as the new admin
 		internalMessage(**clients.begin(), "You are now the channel admin.\n");  // Correctly pass the reference
 	}
-
 	// If there are no clients left, you can clean up or close the channel.
 	if (clients.empty()) {
 		// Clean up the channel or leave it open for future clients (optional logic)
 		// Example: delete the channel, or make it inactive
 	}
-
-	return true;
-}
-
-void Channel::create(const Client& creator, const std::string& password) {
-	hashed_pass = hashSimple(password);  // Set hashed password for the channel
-	clients.insert(&creator);			// Add the creator to the clients
-	admins.insert(&creator);			 // Set creator as the admin
-	// Other initialization logic if needed...
 }
 
 /* GROUP MESSAGES */
@@ -241,7 +197,6 @@ void Channel::inviteClient(const Client& in_client, const Client& admin) {
 		internalMessage(admin, "You don't have admin rights!");
 		return;
 	}
-
 	invited_clients.insert(&in_client);  // Add the client to the invited list.
 	internalMessage(in_client, "You have been invited to join the channel: " + name);
 }

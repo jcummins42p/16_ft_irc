@@ -6,7 +6,7 @@
 /*   By: pyerima <pyerima@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 14:48:02 by pyerima           #+#    #+#             */
-/*   Updated: 2024/12/09 17:48:08 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/10 18:34:27 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -137,9 +137,8 @@ void Server::acceptClient(struct pollfd* fds) {
 		return;
 	}
 
-	log.info("Client connected: FD " + intToString(client_fd));
+	log.info("Client connected: fd " + intToString(client_fd));
 	clients[client_fd] = new Client(client_fd, *this);
-	sendString(client_fd, "Please enter the password: ");
 
 	for (int i = 1; i <= MAX_CLIENTS; i++) {
 		if (fds[i].fd == -1) {
@@ -148,13 +147,14 @@ void Server::acceptClient(struct pollfd* fds) {
 			break;
 		}
 	}
+	sendString(client_fd, "Please enter the server password:");
 }
 
 void Server::handleDisconnect(int client_fd, int bytes_received) {
 	if (bytes_received == 0) {
-		log.info("Client disconnected: FD " + intToString(client_fd));
+		log.info("Client disconnected: fd " + intToString(client_fd));
 	} else {
-		log.error("Received error on client: FD " + intToString(client_fd));
+		log.error("Received error on client: fd " + intToString(client_fd));
 	}
 	close(client_fd);
 	clients.erase(client_fd);
@@ -177,7 +177,7 @@ void Server::handleClient(int client_fd) {
 		// Extract and process one complete message at a time
 		std::string message = inBuffs[client_fd].substr(0, pos);
 		inBuffs[client_fd].erase(0, pos + 2);
-		log.info("Received message from FD " + intToString(client_fd) + ": " + message);
+		log.info("Received message from fd " + intToString(client_fd) + ": " + message);
 		//	need to handle messages which end with \r\n to comply with irc
 		if (!message.empty() && message[message.size() - 1] == '\r' ) {
 			message[message.size() - 1] = '\0';
@@ -193,20 +193,20 @@ int Server::handleAuth(int client_fd, const std::string &message)
 		unsigned int in_hashed_pass = hashSimple(message);
 
 		if (in_hashed_pass != this->hashed_pass) {
-			log.warn("Authentication failed for FD " + intToString(client_fd));
+			log.warn("Authentication failed for fd " + intToString(client_fd));
 			sendString(client_fd, "Wrong password, try again: ");
 		} else {
 			clients[client_fd]->setAuthenticated();
-			log.info("Client authenticated: FD " + intToString(client_fd));
+			log.info("Client authenticated: fd " + intToString(client_fd));
 			sendString(client_fd, "Authentication successful!");
-			return (1);
 		}
+		return (1);
 	}
 	return (0);
 }
 
 void Server::promptRegistration(int client_fd) {
-	std::string message = "You are not registered. Please set a ";
+	std::string message = "You are not registered.\nPlease set a ";
 	if (getClientRef(client_fd).getNick().empty()) {
 		message += "NICK ";
 		if (getClientRef(client_fd).getUser().empty())
@@ -214,7 +214,7 @@ void Server::promptRegistration(int client_fd) {
 	}
 	else
 		message += "USER ";
-	message += "name to access irc commands";
+	message += "name.";
 	sendString(client_fd, message);
 }
 
@@ -248,15 +248,15 @@ void Server::processMessage(int client_fd, const std::string& message) {
 	} else if (command == "INVITE") {
 		handleInviteCommand(client_fd, iss);
 	} else {
-		log.info("Unhandled message from FD " + intToString(client_fd) + ": " + message);
+		log.info("Unhandled message from fd " + intToString(client_fd) + ": " + message);
 	}
 }
 
 Channel *Server::createChannel(int client_fd, std::string chName, std::string passwd) {
 	Channel *output = new Channel(*this, chName, *clients[client_fd], passwd);
 	channels[chName] = output;  // Add the new channel to the map
-	sendString(client_fd, "Made new channel successfully.");
-	log.info("Client " + intToString(client_fd) + " created channel " + output->getName());
-
+	sendString(client_fd, "Made new channel '" + output->getName() + "' successfully.");
+	log.info( getClientRef(client_fd).getNick() + " (fd " + intToString(client_fd)
+			+ ") created channel " + output->getName());
 	return (output);
 }
