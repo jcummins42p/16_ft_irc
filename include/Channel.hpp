@@ -6,7 +6,7 @@
 /*   By: pyerima <pyerima@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/04 14:58:10 by mmakagon          #+#    #+#             */
-/*   Updated: 2024/12/09 17:10:54 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/10 13:27:10 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,8 +55,8 @@ public:
     // Channel management
     bool addClient(const Client& in_client, const Client& admin);
     bool addAdmin(const Client& in_client, const Client& admin);
-    bool kickClient(const Client& target, const Client& admin);
-    bool kickAdmin(const Client& target, const Client& admin);
+    void kickClient(const Client& target, const Client& admin);
+    void kickAdmin(const Client& target, const Client& admin);
 
     // Join/Leave
     bool joinChannel(const Client& in_client, const std::string& password); // Updated declaration.

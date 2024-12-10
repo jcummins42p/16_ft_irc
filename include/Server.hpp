@@ -6,7 +6,7 @@
 /*   By: pyerima <pyerima@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 14:48:02 by pyerima           #+#    #+#             */
-/*   Updated: 2024/12/09 17:39:10 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/10 14:15:01 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,12 +83,13 @@ public:
 
 	void sendString(int client_fd, const std::string &message) ;
 
-	Client *getClient(const std::string &search);
-	Client *getClient(const int &fd);
-	Client &getClientRef(const std::string &search);
-	Client &getClientRef(const int &fd);
-	Channel *getChannel(const std::string &search);
-	Channel &getChannelRef(const std::string &search);
+	const int	&getClientFd(const std::string &search) const;
+	Client 		*getClient(const std::string &search) const;
+	Client 		*getClient(const int &fd) const;
+	Client 		&getClientRef(const std::string &search) const;
+	Client		&getClientRef(const int &fd) const;
+	Channel		*getChannel(const std::string &search) const;
+	Channel		&getChannelRef(const std::string &search) const;
 
 	void sendMessages(struct pollfd &fd);
 };
