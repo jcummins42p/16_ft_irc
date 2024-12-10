@@ -6,7 +6,7 @@
 /*   By: mmakagon <mmakagon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 14:48:02 by pyerima           #+#    #+#             */
-/*   Updated: 2024/12/09 18:21:49 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/09 18:59:07 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,7 +41,6 @@ public:
 
 	void				setNick(const std::string& in_nick);
 	void				setUser(const std::string& in_username);
-	const Server		&getServer( void );
 	void				leaveChannel( const Channel &channel );
 
 	bool	isInChannel( const Channel &channel ) const;

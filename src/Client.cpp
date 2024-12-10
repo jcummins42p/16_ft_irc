@@ -6,7 +6,7 @@
 /*   By: mmakagon <mmakagon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 14:48:02 by pyerima           #+#    #+#             */
-/*   Updated: 2024/12/09 18:53:11 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/09 18:59:18 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,10 +79,6 @@ void	Client::setUser(const std::string& in_username) {
 	user = validateUser(in_username);
 	if (!getNick().empty())
 		setRegistered();
-}
-
-const Server &Client::getServer( void ) {
-	return this->server;
 }
 
 bool	Client::isInChannel( const Channel &channel ) const {
