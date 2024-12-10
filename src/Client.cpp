@@ -6,7 +6,7 @@
 /*   By: mmakagon <mmakagon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 14:48:02 by pyerima           #+#    #+#             */
-/*   Updated: 2024/12/09 18:59:18 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/10 15:24:33 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,9 +52,11 @@ static std::string validateUser( std::string name ) {
 	return (name);
 }
 
-static std::string validateNick( std::string nick ) {
+static std::string validateNick( const Server &server, std::string nick ) {
 	if (nick.empty())
 		throw std::invalid_argument("Can't set an empty nick");
+	if (server.getClient(nick))
+		throw std::invalid_argument("Nick already taken on this server");
 	if (!isalpha(nick[0]))
 		throw std::invalid_argument("Nick must begin with a letter");
 	if (nick.size() > NICK_MAX_LEN)
@@ -70,7 +72,7 @@ static std::string validateNick( std::string nick ) {
 }
 
 void	Client::setNick(const std::string& in_nick) {
-	nick = validateNick(in_nick);
+	nick = validateNick(server, in_nick);
 	if (!getUser().empty())
 		setRegistered();
 }

@@ -6,7 +6,7 @@
 /*   By: jcummins <jcummins@student.42prague.com>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/06 15:21:19 by jcummins          #+#    #+#             */
-/*   Updated: 2024/12/09 18:48:10 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/10 14:27:17 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,7 +63,7 @@ void Server::handleJoinCommand(int client_fd, std::istringstream& iss) {
 	if (channel == NULL) {
 		try { channel = createChannel(client_fd, channelName, password); }
 		catch ( std::invalid_argument &e ) {
-			log.error("Client " + intToString(client_fd) + " failed to create channel " + channelName + ": " + std::string(e.what()));
+			log.error("Join: Client " + intToString(client_fd) + " failed to create channel " + channelName + ": " + std::string(e.what()));
 			sendString(client_fd, e.what());
 		}
 	} else {
@@ -85,8 +85,6 @@ void Server::handlePartCommand(int client_fd, std::istringstream& iss)
 
 	if (channels.find(channel_name) != channels.end()) {
 		channels[channel_name]->leaveChannel(*clients[client_fd]);
-		//clients[client_fd]->channels.erase(channel_name);
-		//clients[client_fd]->leaveChannel(channel_name);
 		sendString(client_fd, "Left channel: " + channel_name );
 		channels[channel_name]->channelMessage(clients[client_fd]->getNick() + " has left the channel.", *clients[client_fd]);
 	} else {
@@ -94,39 +92,41 @@ void Server::handlePartCommand(int client_fd, std::istringstream& iss)
 	}
 }
 
-// Why does PRIVMSG sends a message to some channel???
 void Server::handlePrivmsgCommand(int client_fd, std::istringstream& iss) {
 	std::string target;
 	std::string msg;
 	iss >> target;
 	std::getline(iss, msg);
 
-	// Trim leading whitespace from the message
-	if (!msg.empty() && msg[0] == ' ')
-		msg.erase(0, 1);
-
-	// Check if the target is a channel
-	if (target[0] == '#') {
-		// Look for the channel by name
-		Channel* channel = getChannel(target);
-		if (!getClientRef(client_fd).isInChannel(channel))
-			return (sendString(client_fd, "Not in channel " + target));
-		std::string formattedMsg = "Message from " + clients[client_fd]->getNick() + ": " + msg;
-		channel->channelMessage(formattedMsg, *clients[client_fd]);
-		return;
-	}
-
-	// If the target is a client (not a channel), find the client by nickname
-	for (std::map<int, Client*>::iterator it = clients.begin(); it != clients.end(); ++it) {
-		if (it->second->getNick() == target) {
-			// Send the private message to the target client
-			std::string formattedMsg = "Private message from " + clients[client_fd]->getNick() + ": " + msg;
-			return (sendString(it->first, formattedMsg));
+	try {
+		if (!msg.empty()) {
+			size_t colpos = msg.find(":", 0);
+			if (colpos != std::string::npos && colpos + 1 < msg.size())
+				msg = msg.substr(colpos + 1);
+			else
+				throw std::runtime_error("Message must begin with :");
 		}
-	}
 
+		// Check if the target is a channel
+		if (target[0] == '#') {
+			// Look for the channel by name
+			Channel* channel = getChannel(target);
+			if (!getClientRef(client_fd).isInChannel(channel))
+				throw (std::runtime_error("Not in channel " + target));
+			std::string formattedMsg = channel->getName() + " message from " + clients[client_fd]->getNick() + ": " + msg;
+			channel->channelMessage(formattedMsg, *clients[client_fd]);
+			return;
+		}
+
+		// If the target is a client (not a channel), find the client by nickname
+		std::string formattedMsg = "Private message from " + clients[client_fd]->getNick() + ": " + msg;
+		return (sendString(getClientFd(target), formattedMsg));
+	}
 	// If the target client was not found
-	sendString(client_fd, "Target client not found.");
+	catch ( std::runtime_error &e ) {
+		log.error("Privmsg" + std::string(e.what()));
+		sendString(client_fd, std::string(e.what()));
+	}
 }
 
 void Server::handleQuitCommand(int client_fd)
@@ -164,11 +164,15 @@ void Server::handleModeCommand(int client_fd, std::istringstream& iss)
 void Server::handleKickCommand(int client_fd, std::istringstream& iss) {
 	std::string channel_name, target;
 	iss >> channel_name >> target; // read channel name and target nickname
-										//
-	std::cout << "Client " << client_fd << " attempting to kick " << target << " from channel " << channel_name << std::endl;
-	try {getChannelRef(channel_name).kickClient(getClientRef(target), getClientRef(client_fd));}
+
+	log.info("Client " + intToString(client_fd) + " attempting to kick " + target + " from channel " + channel_name);
+	try {
+		getChannelRef(channel_name).kickClient(getClientRef(target), getClientRef(client_fd));
+		sendString(client_fd, "Successfully kicked " + target + " from channel " + channel_name);
+	}
 	catch ( std::runtime_error &e ) {
-		std::cout << e.what() << std::endl;
+		log.error("Kick: " + std::string(e.what()));
+		sendString(client_fd, std::string(e.what()));
 	}
 }
 

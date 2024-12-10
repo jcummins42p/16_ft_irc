@@ -6,7 +6,7 @@
 /*   By: pyerima <pyerima@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/04 17:00:44 by mmakagon          #+#    #+#             */
-/*   Updated: 2024/12/09 17:10:32 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/10 13:43:51 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -130,47 +130,31 @@ bool	Channel::addAdmin(const Client& in_client, const Client& admin) {
 	}
 }
 
-bool Channel::kickClient(const Client& target, const Client& admin) {
-	try {
-		if (admins.find(&admin) == admins.end())
-			throw (std::runtime_error("admin rights required"));
-		if (clients.find(&target) == clients.end())
-			throw (std::runtime_error("user not in channel"));
-		if (admins.find(&target) != admins.end())
-			throw (std::runtime_error("cannot kick admin"));
-		internalMessage(target, "You have been kicked from " + getName() + " by " + admin.getNick() + ", bye.");
-		clients.erase(&target);  // Remove the user from the channel
-	}
-	catch ( std::runtime_error &e ) {
-		internalMessage(admin, "Error: Kickclient:" + std::string(e.what()));
-	}
-	return true;
+void Channel::kickClient(const Client& target, const Client& admin) {
+	if (admins.find(&admin) == admins.end())
+		throw (std::runtime_error("admin rights required"));
+	if (clients.find(&target) == clients.end())
+		throw (std::runtime_error("user not in channel"));
+	if (admins.find(&target) != admins.end())
+		throw (std::runtime_error("cannot kick admin"));
+	internalMessage(target, "You have been kicked from " + getName() + " by " + admin.getNick() + ", bye.");
+	clients.erase(&target);  // Remove the user from the channel
 }
 
-bool Channel::kickAdmin(const Client& target, const Client& admin) {
-	if (admins.find(&admin) == admins.end()) {
-		internalMessage(admin, "You don't have admin rights!");
-		return false;
-	}
-	else if (clients.find(&target) == clients.end()) {
-		internalMessage(admin, "Can't kick - the user is not in the channel!");
-		return false;
-	}
-	else if (admins.find(&target) == admins.end()) {
-		internalMessage(admin, "Can't kick - the user is not an admin!");
-		return false;
-	}
-	else {
-		admins.erase(&target);  // Remove the user from the admin list
+void Channel::kickAdmin(const Client& target, const Client& admin) {
+	if (admins.find(&admin) == admins.end())
+		throw (std::runtime_error("admin rights required"));
+	else if (clients.find(&target) == clients.end())
+		throw (std::runtime_error("user not in channel"));
+	else if (admins.find(&target) == admins.end())
+		throw (std::runtime_error("cannot kickadmin - user is not admin"));
+	admins.erase(&target);  // Remove the user from the admin list
 
-		// If all admins are removed, assign a new admin if there are clients left.
-		if (admins.empty() && !clients.empty()) {
-			// Assign the first client as the new admin
-			admins.insert(*clients.begin());
-			internalMessage(**clients.begin(), "You are now the channel admin.");
-		}
-
-		return true;
+	// If all admins are removed, assign a new admin if there are clients left.
+	if (admins.empty() && !clients.empty()) {
+		// Assign the first client as the new admin
+		admins.insert(*clients.begin());
+		internalMessage(**clients.begin(), "You are now the channel admin.");
 	}
 }
 
