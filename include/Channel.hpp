@@ -6,7 +6,7 @@
 /*   By: pyerima <pyerima@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/04 14:58:10 by mmakagon          #+#    #+#             */
-/*   Updated: 2024/12/11 18:22:17 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/11 21:35:58 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,7 @@
 
 //#define MAX_CLIENTS 10
 #define MAX_PASS_LEN 16
+#define SIZE_MAX 512
 
 class Channel {
 private:
@@ -57,18 +58,20 @@ public:
     void setPass(const std::string &in_pass, const Client& admin);
 
     // Channel management
-    void addClient(const Client &in_client, const Client &admin);
-    void addAdmin(const Client &in_client, const Client &admin);
+    void addClient(const Client &target, const Client &admin);
+    void addAdmin(const Client &target, const Client &admin);
+    void revokeAdmin(const Client &target, const Client &admin);
     void kickClient(const Client &target, const Client &admin);
     void kickAdmin(const Client &target, const Client &admin);
+	void setUserLimit(const long &newlimit, const Client &admin);
 
     // Join/Leave
-    void joinChannel(const Client &in_client, const std::string &password); // Updated declaration.
-    void removeClient(const Client &in_client);
+    void joinChannel(const Client &target, const std::string &password); // Updated declaration.
+    void removeClient(const Client &target);
 	void create(const Client &creator, const std::string &password); //
 
     // Invite management
-    void inviteClient(const Client &in_client, const Client &admin); // Declare the inviteClient method.
+    void inviteClient(const Client &target, const Client &admin); // Declare the inviteClient method.
 
     // Group messaging
     void channelMessage( const std::string &message, const Client &sender) ;
@@ -77,11 +80,11 @@ public:
 	bool containsMember(const Client &client ) const ;
 
 	// Mode controls
-	std::string handleModeInvite(int client_fd, std::string &input, bool toggle);
-	std::string handleModeTopic(int client_fd, std::string &input, bool toggle);
-	std::string handleModeKey(int client_fd, std::string &input, bool toggle);
-	std::string handleModeOperator(int client_fd, std::string &input, bool toggle);
-	std::string handleModeUserLimit(int client_fd, std::string &input, bool toggle);
+	std::string handleModeInvite(int client_fd, const std::string &input, bool toggle);
+	std::string handleModeTopic(int client_fd, const std::string &input, bool toggle);
+	std::string handleModeKey(int client_fd, const std::string &input, bool toggle);
+	void handleModeOperator(int client_fd, const std::string &input, bool toggle);
+	std::string handleModeUserLimit(int client_fd, const std::string &input, bool toggle);
 };
 
 #endif

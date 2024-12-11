@@ -6,7 +6,7 @@
 /*   By: jcummins <jcummins@student.42prague.com>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/06 15:21:19 by jcummins          #+#    #+#             */
-/*   Updated: 2024/12/11 19:35:49 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/11 21:02:42 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -96,7 +96,7 @@ void Server::handlePartCommand(int client_fd, std::istringstream& iss)
 		if (!getClientRef(client_fd).isInChannel(channel))
 			throw (std::runtime_error("Not in channel " + channel_name));
 		channel.removeClient(*clients[client_fd]);
-		sendString(client_fd, channel_name + ": you left channel" + channel_name );
+		sendString(client_fd, channel_name + ": you left channel " + channel_name );
 		channel.channelMessage(channel_name + ": " + clients[client_fd]->getNick()
 				+ " has left channel", *clients[client_fd]);
 	}
@@ -175,9 +175,6 @@ void Server::handleTopicCommand(int client_fd, std::istringstream& iss)
 		channel.setTopic(new_topic, *clients[client_fd]);
 		sendString(client_fd, channel_name
 				+ " topic changed to '" + new_topic + '"');
-		channel.channelMessage(channel_name
-				+ " topic changed by " + getClientRef(client_fd).getNick()
-				+ " to '" + new_topic + "'", *clients[client_fd]);
 	} catch (std::exception &e) {
 		log.error("Topic: " + std::string(e.what()));
 		sendString(client_fd, std::string(e.what()));
@@ -191,8 +188,9 @@ void Server::handleModeCommand(int client_fd, std::istringstream& iss)
 	iss >> channel_name >> mode; // read channel name and mode
 
 	try {
+		Channel &channel = getChannelRef(channel_name);
 		if (mode.size() != 2)
-			throw std::runtime_error("Invalid mode switch length: " + intToString(mode.size()));
+			throw std::runtime_error("Invalid mode switch " + mode);
 		if (mode[0] == '+')
 			toggle = true;
 		else if (mode[0] != '-')
@@ -200,15 +198,17 @@ void Server::handleModeCommand(int client_fd, std::istringstream& iss)
 		std::getline(iss, input);
 		colonectomy(input);
 		if (mode[1] == 'i')
-			message = getChannelRef(channel_name).handleModeInvite(client_fd, input, toggle);
+			message = channel.handleModeInvite(client_fd, input, toggle);
 		else if (mode[1] == 't')
-			message = getChannelRef(channel_name).handleModeTopic(client_fd, input, toggle);
+			message = channel.handleModeTopic(client_fd, input, toggle);
 		else if (mode[1] == 'k')
-			message = getChannelRef(channel_name).handleModeKey(client_fd, input, toggle);
-		else if (mode[1] == 'o')
-			message = getChannelRef(channel_name).handleModeOperator(client_fd, input, toggle);
+			message = channel.handleModeKey(client_fd, input, toggle);
+		else if (mode[1] == 'o') {
+			channel.handleModeOperator(client_fd, input, toggle);
+			return ;
+		}
 		else if (mode[1] == 'l')
-			message = getChannelRef(channel_name).handleModeUserLimit(client_fd, input, toggle);
+			message = channel.handleModeUserLimit(client_fd, input, toggle);
 		else
 			throw std::runtime_error("Invalid mode '" + mode + "'");
 		log.info("Mode: " + message);
