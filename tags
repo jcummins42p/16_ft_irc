@@ -1,182 +1,171 @@
 !_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
 !_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
-!_TAG_OUTPUT_EXCMD	mixed	/number, pattern, mixed, or combineV2/
-!_TAG_OUTPUT_FILESEP	slash	/slash or backslash/
-!_TAG_OUTPUT_MODE	u-ctags	/u-ctags or e-ctags/
-!_TAG_PATTERN_LENGTH_LIMIT	96	/0 for no limit/
-!_TAG_PROC_CWD	/nfs/homes/jcummins/Projects/16_ft_irc/	//
-!_TAG_PROGRAM_AUTHOR	Universal Ctags Team	//
-!_TAG_PROGRAM_NAME	Universal Ctags	/Derived from Exuberant Ctags/
-!_TAG_PROGRAM_URL	https://ctags.io/	/official site/
-!_TAG_PROGRAM_VERSION	5.9.0	//
-$(NAME)	Makefile	/^$(NAME): $(OBJS)$/;"	t
-$(NAME)	tests/Makefile	/^$(NAME): $(OBJS)$/;"	t
-$(OBJ_DIR)/%.o	Makefile	/^$(OBJ_DIR)\/%.o: $(SRC_DIR)\/%.cpp $(addprefix $(INC_DIR)\/, $(HEADS)) $(MAKE)$/;"	t
-$(OBJ_DIR)/%.o	tests/Makefile	/^$(OBJ_DIR)\/%.o: $(SRC_DIR)\/%.cpp$/;"	t
-BUFFER_SIZE	include/Server.hpp	/^#define BUFFER_SIZE /;"	d
-BUFFER_SIZE	include/ft_irc.hpp	/^# define BUFFER_SIZE /;"	d
-CHANNEL_HPP	include/Channel.hpp	/^#define CHANNEL_HPP$/;"	d
-CHANNEL_HPP	unused/Channel_old.hpp	/^# define CHANNEL_HPP$/;"	d
-CLIENT_HPP	include/Client.hpp	/^# define CLIENT_HPP$/;"	d
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+BUFFER_SIZE	include/Server.hpp	29;"	d
+BUFFER_SIZE	include/ft_irc.hpp	25;"	d
+CHANNEL_HPP	include/Channel.hpp	14;"	d
+CHANNEL_HPP	unused/Channel_old.hpp	14;"	d
+CLIENT_HPP	include/Client.hpp	14;"	d
 CXX	Makefile	/^CXX = c++$/;"	m
 CXX	tests/Makefile	/^CXX = c++$/;"	m
+CXXFLAGS	Makefile	/^CXXFLAGS = -Wall -Wextra -Werror -Wunused-result -pedantic -std=c++98 \\$/;"	m
+CXXFLAGS	tests/Makefile	/^CXXFLAGS = -Wall -Wextra -Werror -Wunused-result -pedantic -std=c++98 $(INCLUDES) -fsanitize=address$/;"	m
 Channel	include/Channel.hpp	/^class Channel {$/;"	c
-Channel	src/Channel.cpp	/^Channel::Channel( Server &server, const std::string& in_name, const Client& creator, const std::/;"	f	class:Channel
+Channel	src/Channel.cpp	/^Channel::Channel( Server &server, const std::string& in_name, const Client& creator, const std::string& password) :$/;"	f	class:Channel
 Channel	unused/Channel_old.cpp	/^Channel::Channel(const std::string& name) :$/;"	f	class:Channel
 Channel	unused/Channel_old.hpp	/^class Channel {$/;"	c
 Client	include/Client.hpp	/^class Client {$/;"	c
 Client	src/Client.cpp	/^Client::Client(int fd, Server &server) :$/;"	f	class:Client
-FAILURE	tests/tests.cpp	/^#define FAILURE(/;"	d	file:
-GRN	tests/tests.cpp	/^#define GRN /;"	d	file:
+FAILURE	tests/tests.cpp	23;"	d	file:
+GRN	tests/tests.cpp	17;"	d	file:
 INCLUDES	tests/Makefile	/^INCLUDES = -I..\/include$/;"	m
 INC_DIR	Makefile	/^INC_DIR = include$/;"	m
-IRCSERV_HPP	include/ft_irc.hpp	/^# define IRCSERV_HPP$/;"	d
-LOGGER_H	include/Logger.hpp	/^# define LOGGER_H$/;"	d
+IRCSERV_HPP	include/ft_irc.hpp	14;"	d
+LOGGER_H	include/Logger.hpp	14;"	d
 Logger	include/Logger.hpp	/^class	Logger$/;"	c
 Logger	src/Logger.cpp	/^Logger::Logger( void ) {$/;"	f	class:Logger
 MAKE	Makefile	/^MAKE = .\/Makefile$/;"	m
-MAX_CLIENTS	include/ft_irc.hpp	/^# define MAX_CLIENTS /;"	d
+MAX_CLIENTS	include/ft_irc.hpp	24;"	d
 NAME	Makefile	/^NAME = ircserver$/;"	m
 NAME	tests/Makefile	/^NAME = tests$/;"	m
-NEW_SECTION	tests/tests.cpp	/^#define NEW_SECTION /;"	d	file:
-NICK_MAX_LEN	include/Client.hpp	/^#define NICK_MAX_LEN /;"	d
+NEW_SECTION	tests/tests.cpp	20;"	d	file:
+NICK_MAX_LEN	include/Client.hpp	24;"	d
 OBJS	Makefile	/^OBJS = $(addprefix $(OBJ_DIR)\/, $(SRCS:.cpp=.o))$/;"	m
 OBJS	tests/Makefile	/^OBJS = $(SRCS:$(SRC_DIR)\/%.cpp=$(OBJ_DIR)\/%.o)$/;"	m
 OBJ_DIR	Makefile	/^OBJ_DIR = obj$/;"	m
 OBJ_DIR	tests/Makefile	/^OBJ_DIR = obj$/;"	m
-PRINT_VAR	tests/tests.cpp	/^#define PRINT_VAR(/;"	d	file:
-RED	tests/tests.cpp	/^#define RED /;"	d	file:
-RESET	tests/tests.cpp	/^#define RESET /;"	d	file:
-SERVER_HPP	include/Server.hpp	/^#define SERVER_HPP$/;"	d
+PRINT_VAR	tests/tests.cpp	21;"	d	file:
+RED	tests/tests.cpp	16;"	d	file:
+RESET	tests/tests.cpp	18;"	d	file:
+SERVER_HPP	include/Server.hpp	14;"	d
 SRCS	Makefile	/^SRCS = main.cpp \\$/;"	m
 SRCS	tests/Makefile	/^SRCS = tests.cpp \\$/;"	m
 SRC_DIR	Makefile	/^SRC_DIR = src$/;"	m
 SRC_DIR	tests/Makefile	/^SRC_DIR = ..\/src$/;"	m
-SUCCESS	tests/tests.cpp	/^#define SUCCESS(/;"	d	file:
+SUCCESS	tests/tests.cpp	22;"	d	file:
 Server	include/Server.hpp	/^class Server {$/;"	c
 Server	src/Server.cpp	/^Server::Server(int port, const std::string& in_pass) {$/;"	f	class:Server
-USER_MAX_LEN	include/Client.hpp	/^#define USER_MAX_LEN /;"	d
-UTILS_H	include/utils.hpp	/^# define UTILS_H$/;"	d
-acceptClient	src/Server.cpp	/^void Server::acceptClient(struct pollfd* fds) {$/;"	f	class:Server	typeref:typename:void
-addAdmin	src/Channel.cpp	/^bool	Channel::addAdmin(const Client& in_client, const Client& admin) {$/;"	f	class:Channel	typeref:typename:bool
-addClient	src/Channel.cpp	/^bool	Channel::addClient(const Client& in_client, const Client& admin) {$/;"	f	class:Channel	typeref:typename:bool
-admins	include/Channel.hpp	/^    std::set<const Client*> admins;$/;"	m	class:Channel	typeref:typename:std::set<const Client * >
-all	Makefile	/^all: $(NAME)$/;"	t
-all	tests/Makefile	/^all: $(NAME)$/;"	t
-allowedchars	src/Client.cpp	/^const static std::string allowedchars = "`|^_-{}[]\\\\";$/;"	v	typeref:typename:const std::string	file:
-caseInsCompare	src/utils.cpp	/^bool	caseInsCompare( const std::string &a, const std::string &b) {$/;"	f	typeref:typename:bool
-channelMessage	src/Channel.cpp	/^void Channel::channelMessage(const std::string &message, const Client &sender) {$/;"	f	class:Channel	typeref:typename:void
-channelMessage	unused/Channel_old.cpp	/^void Channel::channelMessage(const std::string& message, int sender_fd)$/;"	f	class:Channel	typeref:typename:void
-channels	include/Server.hpp	/^    std::map<std::string, Channel*> channels;$/;"	m	class:Server	typeref:typename:std::map<std::string,Channel * >
-clean	Makefile	/^clean:$/;"	t
-clean	tests/Makefile	/^clean:$/;"	t
-clients	include/Channel.hpp	/^    std::set<const Client*> clients;$/;"	m	class:Channel	typeref:typename:std::set<const Client * >
-clients	include/Server.hpp	/^    std::map<int, Client*> clients;$/;"	m	class:Server	typeref:typename:std::map<int,Client * >
-clients	unused/Channel_old.hpp	/^		std::set<int> clients; \/\/client file descriptors$/;"	m	class:Channel	typeref:typename:std::set<int>
-clnts_limit	include/Channel.hpp	/^    size_t			clnts_limit;$/;"	m	class:Channel	typeref:typename:size_t
-containsMember	src/Channel.cpp	/^bool Channel::containsMember(const Client &client ) const {$/;"	f	class:Channel	typeref:typename:bool
-create	src/Channel.cpp	/^void Channel::create(const Client& creator, const std::string& password) {$/;"	f	class:Channel	typeref:typename:void
-createChannel	src/Server.cpp	/^Channel *Server::createChannel(int client_fd, std::string chName, std::string passwd) {$/;"	f	class:Server	typeref:typename:Channel *
-error	src/Logger.cpp	/^void Logger::error( const std::string &message ) {$/;"	f	class:Logger	typeref:typename:void
-fclean	Makefile	/^fclean: clean$/;"	t
-fclean	tests/Makefile	/^fclean: clean$/;"	t
-fd	include/Client.hpp	/^	const int		fd;$/;"	m	class:Client	typeref:typename:const int
-fds	include/Server.hpp	/^    struct pollfd fds[MAX_CLIENTS + 1];$/;"	m	class:Server	typeref:struct:pollfd[]
-getChannel	src/ServerGetters.cpp	/^Channel* Server::getChannel(const std::string& search) const {$/;"	f	class:Server	typeref:typename:Channel *
-getChannelRef	src/ServerGetters.cpp	/^Channel &Server::getChannelRef(const std::string &search) const {$/;"	f	class:Server	typeref:typename:Channel &
-getClient	src/ServerGetters.cpp	/^Client* Server::getClient(const int &fd) const {$/;"	f	class:Server	typeref:typename:Client *
-getClient	src/ServerGetters.cpp	/^Client* Server::getClient(const std::string& search) const {$/;"	f	class:Server	typeref:typename:Client *
-getClientFd	src/ServerGetters.cpp	/^const int &Server::getClientFd(const std::string &search) const {$/;"	f	class:Server	typeref:typename:const int &
-getClientRef	src/ServerGetters.cpp	/^Client &Server::getClientRef(const int &fd) const {$/;"	f	class:Server	typeref:typename:Client &
-getClientRef	src/ServerGetters.cpp	/^Client &Server::getClientRef(const std::string &search) const {$/;"	f	class:Server	typeref:typename:Client &
-getFd	src/Client.cpp	/^const int&			Client::getFd(void) const { return (fd); }$/;"	f	class:Client	typeref:typename:const int &
-getInstance	src/Server.cpp	/^Server *Server::getInstance(int port, const std::string &in_pass) {$/;"	f	class:Server	typeref:typename:Server *
-getName	src/Channel.cpp	/^const std::string&	Channel::getName(void) const { return (name); }$/;"	f	class:Channel	typeref:typename:const std::string &
-getNick	src/Client.cpp	/^const std::string&	Client::getNick(void) const { return nick; }$/;"	f	class:Client	typeref:typename:const std::string &
-getTopic	src/Channel.cpp	/^const std::string&	Channel::getTopic(void) const { return (topic); }$/;"	f	class:Channel	typeref:typename:const std::string &
-getTopic	unused/Channel_old.cpp	/^std::string Channel::getTopic() const$/;"	f	class:Channel	typeref:typename:std::string
-getUser	src/Client.cpp	/^const std::string&	Client::getUser(void) const { return user; }$/;"	f	class:Client	typeref:typename:const std::string &
+USER_MAX_LEN	include/Client.hpp	25;"	d
+UTILS_H	include/utils.hpp	14;"	d
+acceptClient	src/Server.cpp	/^void Server::acceptClient(struct pollfd* fds) {$/;"	f	class:Server
+addAdmin	src/Channel.cpp	/^void	Channel::addAdmin(const Client& in_client, const Client& admin) {$/;"	f	class:Channel
+addClient	src/Channel.cpp	/^void	Channel::addClient(const Client& in_client, const Client& admin) {$/;"	f	class:Channel
+admins	include/Channel.hpp	/^    std::set<const Client*> admins;$/;"	m	class:Channel
+allowedchars	src/Channel.cpp	/^const static std::string allowedchars = "`|^_-{}[]\\\\!@#$%&*()+=.";$/;"	v	file:
+allowedchars	src/Client.cpp	/^const static std::string allowedchars = "`|^_-{}[]\\\\";$/;"	v	file:
+caseInsCompare	src/utils.cpp	/^bool caseInsCompare( const std::string &a, const std::string &b) {$/;"	f
+channelMessage	src/Channel.cpp	/^void Channel::channelMessage(const std::string &message, const Client &sender) {$/;"	f	class:Channel
+channelMessage	unused/Channel_old.cpp	/^void Channel::channelMessage(const std::string& message, int sender_fd)$/;"	f	class:Channel
+channels	include/Server.hpp	/^    std::map<std::string, Channel*> channels;$/;"	m	class:Server
+clients	include/Channel.hpp	/^    std::set<const Client*> clients;$/;"	m	class:Channel
+clients	include/Server.hpp	/^    std::map<int, Client*> clients;$/;"	m	class:Server
+clients	unused/Channel_old.hpp	/^		std::set<int> clients; \/\/client file descriptors$/;"	m	class:Channel
+clnts_limit	include/Channel.hpp	/^    size_t			clnts_limit;$/;"	m	class:Channel
+colonectomy	src/ServerCommands.cpp	/^static void colonectomy( std::string &msg ) {$/;"	f	file:
+containsMember	src/Channel.cpp	/^bool Channel::containsMember(const Client &client ) const {$/;"	f	class:Channel
+createChannel	src/Server.cpp	/^Channel *Server::createChannel(int client_fd, std::string chName, std::string passwd) {$/;"	f	class:Server
+error	src/Logger.cpp	/^void Logger::error( const std::string &message ) {$/;"	f	class:Logger
+fd	include/Client.hpp	/^	const int		fd;$/;"	m	class:Client
+fds	include/Server.hpp	/^    struct pollfd fds[MAX_CLIENTS + 1];$/;"	m	class:Server	typeref:struct:Server::pollfd
+getChannel	src/ServerGetters.cpp	/^Channel* Server::getChannel(const std::string& search) const {$/;"	f	class:Server
+getChannelRef	src/ServerGetters.cpp	/^Channel &Server::getChannelRef(const std::string &search) const {$/;"	f	class:Server
+getClient	src/ServerGetters.cpp	/^Client* Server::getClient(const int &fd) const {$/;"	f	class:Server
+getClient	src/ServerGetters.cpp	/^Client* Server::getClient(const std::string& search) const {$/;"	f	class:Server
+getClientFd	src/ServerGetters.cpp	/^const int &Server::getClientFd(const std::string &search) const {$/;"	f	class:Server
+getClientRef	src/ServerGetters.cpp	/^Client &Server::getClientRef(const int &fd) const {$/;"	f	class:Server
+getClientRef	src/ServerGetters.cpp	/^Client &Server::getClientRef(const std::string &search) const {$/;"	f	class:Server
+getFd	src/Client.cpp	/^const int&			Client::getFd(void) const { return (fd); }$/;"	f	class:Client
+getInstance	src/Server.cpp	/^Server *Server::getInstance(int port, const std::string &in_pass) {$/;"	f	class:Server
+getName	src/Channel.cpp	/^const std::string&	Channel::getName(void) const { return (name); }$/;"	f	class:Channel
+getNick	src/Client.cpp	/^const std::string&	Client::getNick(void) const { return nick; }$/;"	f	class:Client
+getTopic	src/Channel.cpp	/^const std::string&	Channel::getTopic(void) const { return (topic); }$/;"	f	class:Channel
+getTopic	unused/Channel_old.cpp	/^std::string Channel::getTopic() const$/;"	f	class:Channel
+getUser	src/Client.cpp	/^const std::string&	Client::getUser(void) const { return user; }$/;"	f	class:Client
 hEADS	Makefile	/^hEADS = ft_irc.hpp Channel.hpp Client.hpp Server.hpp Logger.hpp utils.hpp$/;"	m
-handleAuth	src/Server.cpp	/^int Server::handleAuth(int client_fd, const std::string &message)$/;"	f	class:Server	typeref:typename:int
-handleClient	src/Server.cpp	/^void Server::handleClient(int client_fd) {$/;"	f	class:Server	typeref:typename:void
-handleDisconnect	src/Server.cpp	/^void Server::handleDisconnect(int client_fd, int bytes_received) {$/;"	f	class:Server	typeref:typename:void
-handleInviteCommand	src/ServerCommands.cpp	/^void Server::handleInviteCommand(int client_fd, std::istringstream& iss) {$/;"	f	class:Server	typeref:typename:void
-handleJoinCommand	src/ServerCommands.cpp	/^void Server::handleJoinCommand(int client_fd, std::istringstream& iss) {$/;"	f	class:Server	typeref:typename:void
-handleKickCommand	src/ServerCommands.cpp	/^void Server::handleKickCommand(int client_fd, std::istringstream& iss) {$/;"	f	class:Server	typeref:typename:void
-handleModeCommand	src/ServerCommands.cpp	/^void Server::handleModeCommand(int client_fd, std::istringstream& iss)$/;"	f	class:Server	typeref:typename:void
-handleNickCommand	src/ServerCommands.cpp	/^void Server::handleNickCommand(int client_fd, std::istringstream& iss)$/;"	f	class:Server	typeref:typename:void
-handlePartCommand	src/ServerCommands.cpp	/^void Server::handlePartCommand(int client_fd, std::istringstream& iss)$/;"	f	class:Server	typeref:typename:void
-handlePrivmsgCommand	src/ServerCommands.cpp	/^void Server::handlePrivmsgCommand(int client_fd, std::istringstream& iss) {$/;"	f	class:Server	typeref:typename:void
-handleQuitCommand	src/ServerCommands.cpp	/^void Server::handleQuitCommand(int client_fd)$/;"	f	class:Server	typeref:typename:void
-handleTopicCommand	src/ServerCommands.cpp	/^void Server::handleTopicCommand(int client_fd, std::istringstream& iss)$/;"	f	class:Server	typeref:typename:void
-handleUserCommand	src/ServerCommands.cpp	/^void Server::handleUserCommand(int client_fd, std::istringstream& iss)$/;"	f	class:Server	typeref:typename:void
-hashSimple	src/utils.cpp	/^unsigned int hashSimple(const std::string& in_str) {$/;"	f	typeref:typename:unsigned int
-hashed_pass	include/Channel.hpp	/^    unsigned int	hashed_pass;$/;"	m	class:Channel	typeref:typename:unsigned int
-hashed_pass	include/Server.hpp	/^    unsigned int hashed_pass;$/;"	m	class:Server	typeref:typename:unsigned int
-inBuffs	include/Server.hpp	/^	std::map<int, std::string > inBuffs;$/;"	m	class:Server	typeref:typename:std::map<int,std::string>
-info	src/Logger.cpp	/^void Logger::info( const std::string &message) {$/;"	f	class:Logger	typeref:typename:void
-instancePtr	include/Server.hpp	/^	static Server *instancePtr;$/;"	m	class:Server	typeref:typename:Server *
-instancePtr	src/Server.cpp	/^Server *Server::instancePtr = NULL;$/;"	m	class:Server	typeref:typename:Server *
-intToString	src/utils.cpp	/^std::string intToString( int number ) {$/;"	f	typeref:typename:std::string
-internalMessage	src/Channel.cpp	/^void Channel::internalMessage(const Client& client, const std::string message) const {$/;"	f	class:Channel	typeref:typename:void
-inviteClient	src/Channel.cpp	/^void Channel::inviteClient(const Client& in_client, const Client& admin) {$/;"	f	class:Channel	typeref:typename:void
-invite_only	include/Channel.hpp	/^    bool 			invite_only;$/;"	m	class:Channel	typeref:typename:bool
-invite_only	unused/Channel_old.hpp	/^		bool invite_only;$/;"	m	class:Channel	typeref:typename:bool
-invited_clients	include/Channel.hpp	/^    std::set<const Client*> invited_clients; \/\/ Declare the invited clients.$/;"	m	class:Channel	typeref:typename:std::set<const Client * >
-isAuthenticated	src/Client.cpp	/^bool	Client::isAuthenticated(void) const { return is_authenticated; }$/;"	f	class:Client	typeref:typename:bool
-isInChannel	src/Client.cpp	/^bool	Client::isInChannel( const Channel &channel ) const {$/;"	f	class:Client	typeref:typename:bool
-isInChannel	src/Client.cpp	/^bool	Client::isInChannel( const Channel *channel ) const {$/;"	f	class:Client	typeref:typename:bool
-isOperator	unused/Channel_old.cpp	/^bool Channel::isOperator(int client_fd)$/;"	f	class:Channel	typeref:typename:bool
-isRegistered	src/Client.cpp	/^bool	Client::isRegistered(void) const { return (is_registered); }$/;"	f	class:Client	typeref:typename:bool
-is_authenticated	include/Client.hpp	/^	bool			is_authenticated;$/;"	m	class:Client	typeref:typename:bool
-is_registered	include/Client.hpp	/^	bool			is_registered;$/;"	m	class:Client	typeref:typename:bool
-join	unused/Channel_old.cpp	/^void Channel::join(int client_fd)$/;"	f	class:Channel	typeref:typename:void
-joinChannel	src/Channel.cpp	/^bool Channel::joinChannel(const Client& in_client, const std::string& password) {$/;"	f	class:Channel	typeref:typename:bool
-kickAdmin	src/Channel.cpp	/^void Channel::kickAdmin(const Client& target, const Client& admin) {$/;"	f	class:Channel	typeref:typename:void
-kickClient	src/Channel.cpp	/^void Channel::kickClient(const Client& target, const Client& admin) {$/;"	f	class:Channel	typeref:typename:void
-leaveChannel	src/Channel.cpp	/^bool Channel::leaveChannel(const Client& in_client) {$/;"	f	class:Channel	typeref:typename:bool
-log	include/Server.hpp	/^	Logger log; \/\/ NOT const$/;"	m	class:Server	typeref:typename:Logger
-logFile	include/Logger.hpp	/^		std::ofstream logFile;$/;"	m	class:Logger	typeref:typename:std::ofstream
-logFile	include/Server.hpp	/^	std::ofstream logFile;$/;"	m	class:Server	typeref:typename:std::ofstream
-main	src/main.cpp	/^int main(int argc, char* argv[]) {$/;"	f	typeref:typename:int
-main	tests/tests.cpp	/^int main ()$/;"	f	typeref:typename:int
-name	include/Channel.hpp	/^    std::string		name;$/;"	m	class:Channel	typeref:typename:std::string
-name	unused/Channel_old.hpp	/^		std::string name;$/;"	m	class:Channel	typeref:typename:std::string
-namechars	include/Client.hpp	/^	const static std::string namechars;$/;"	m	class:Client	typeref:typename:const std::string
-nick	include/Client.hpp	/^	std::string		nick;$/;"	m	class:Client	typeref:typename:std::string
-outBuffs	include/Server.hpp	/^	std::map<int, std::vector<std::string> > outBuffs;$/;"	m	class:Server	typeref:typename:std::map<int,std::vector<std::string>>
-output	src/Logger.cpp	/^void Logger::output( const std::string &message ) {$/;"	f	class:Logger	typeref:typename:void
-part	unused/Channel_old.cpp	/^void Channel::part(int client_fd)$/;"	f	class:Channel	typeref:typename:void
-password	unused/Channel_old.hpp	/^		std::string password;$/;"	m	class:Channel	typeref:typename:std::string
-processMessage	src/Server.cpp	/^void Server::processMessage(int client_fd, const std::string& message) {$/;"	f	class:Server	typeref:typename:void
-promptRegistration	src/Server.cpp	/^void Server::promptRegistration(int client_fd) {$/;"	f	class:Server	typeref:typename:void
-re	Makefile	/^re: fclean all$/;"	t
-re	tests/Makefile	/^re: fclean all$/;"	t
-run	src/Server.cpp	/^void Server::run() {$/;"	f	class:Server	typeref:typename:void
-sendMessages	src/Server.cpp	/^void Server::sendMessages(struct pollfd &fd)$/;"	f	class:Server	typeref:typename:void
-sendString	src/Server.cpp	/^void Server::sendString(int client_fd, const std::string &message) {$/;"	f	class:Server	typeref:typename:void
-server	include/Channel.hpp	/^	Server &server;$/;"	m	class:Channel	typeref:typename:Server &
-server	include/Client.hpp	/^	Server &server;$/;"	m	class:Client	typeref:typename:Server &
-server_fd	include/Server.hpp	/^    int server_fd;$/;"	m	class:Server	typeref:typename:int
-setAuthenticated	src/Client.cpp	/^void	Client::setAuthenticated(void) { is_authenticated = true; }$/;"	f	class:Client	typeref:typename:void
-setNick	src/Client.cpp	/^void	Client::setNick(const std::string& in_nick) {$/;"	f	class:Client	typeref:typename:void
-setPass	src/Channel.cpp	/^bool	Channel::setPass(std::string& in_pass, const Client& admin) {$/;"	f	class:Channel	typeref:typename:bool
-setPassword	unused/Channel_old.cpp	/^void Channel::setPassword(const std::string& pass)$/;"	f	class:Channel	typeref:typename:void
-setRegistered	src/Client.cpp	/^void	Client::setRegistered(void) { is_registered = true; }$/;"	f	class:Client	typeref:typename:void
-setTopic	src/Channel.cpp	/^bool	Channel::setTopic(const std::string& in_topic, const Client& admin) {$/;"	f	class:Channel	typeref:typename:bool
-setTopic	unused/Channel_old.cpp	/^void Channel::setTopic(const std::string& new_topic)$/;"	f	class:Channel	typeref:typename:void
-setUser	src/Client.cpp	/^void	Client::setUser(const std::string& in_username) {$/;"	f	class:Client	typeref:typename:void
-timeStamp	src/utils.cpp	/^std::string timeStamp( void ) {$/;"	f	typeref:typename:std::string
-topic	include/Channel.hpp	/^    std::string		topic;$/;"	m	class:Channel	typeref:typename:std::string
-topic	unused/Channel_old.hpp	/^		std::string topic;$/;"	m	class:Channel	typeref:typename:std::string
-topic_admins_only	include/Channel.hpp	/^    bool			topic_admins_only;$/;"	m	class:Channel	typeref:typename:bool
-topic_restricted	unused/Channel_old.hpp	/^		bool topic_restricted;$/;"	m	class:Channel	typeref:typename:bool
-user	include/Client.hpp	/^	std::string		user;$/;"	m	class:Client	typeref:typename:std::string
-user_limit	unused/Channel_old.hpp	/^		int user_limit;$/;"	m	class:Channel	typeref:typename:int
-validateName	src/Channel.cpp	/^static void validateName( const std::string &name ) {$/;"	f	typeref:typename:void	file:
-validateNick	src/Client.cpp	/^static std::string validateNick( const Server &server, std::string nick ) {$/;"	f	typeref:typename:std::string	file:
-validateUser	src/Client.cpp	/^static std::string validateUser( std::string name ) {$/;"	f	typeref:typename:std::string	file:
-warn	src/Logger.cpp	/^void Logger::warn( const std::string &message ) {$/;"	f	class:Logger	typeref:typename:void
+handleAuth	src/Server.cpp	/^int Server::handleAuth(int client_fd, const std::string &message)$/;"	f	class:Server
+handleClient	src/Server.cpp	/^void Server::handleClient(int client_fd) {$/;"	f	class:Server
+handleDisconnect	src/Server.cpp	/^void Server::handleDisconnect(int client_fd, int bytes_received) {$/;"	f	class:Server
+handleInviteCommand	src/ServerCommands.cpp	/^void Server::handleInviteCommand(int client_fd, std::istringstream& iss) {$/;"	f	class:Server
+handleJoinCommand	src/ServerCommands.cpp	/^void Server::handleJoinCommand(int client_fd, std::istringstream& iss) {$/;"	f	class:Server
+handleKickCommand	src/ServerCommands.cpp	/^void Server::handleKickCommand(int client_fd, std::istringstream& iss) {$/;"	f	class:Server
+handleModeCommand	src/ServerCommands.cpp	/^void Server::handleModeCommand(int client_fd, std::istringstream& iss)$/;"	f	class:Server
+handleNickCommand	src/ServerCommands.cpp	/^void Server::handleNickCommand(int client_fd, std::istringstream& iss)$/;"	f	class:Server
+handlePartCommand	src/ServerCommands.cpp	/^void Server::handlePartCommand(int client_fd, std::istringstream& iss)$/;"	f	class:Server
+handlePrivmsgCommand	src/ServerCommands.cpp	/^void Server::handlePrivmsgCommand(int client_fd, std::istringstream& iss) {$/;"	f	class:Server
+handleQuitCommand	src/ServerCommands.cpp	/^void Server::handleQuitCommand(int client_fd)$/;"	f	class:Server
+handleTopicCommand	src/ServerCommands.cpp	/^void Server::handleTopicCommand(int client_fd, std::istringstream& iss)$/;"	f	class:Server
+handleUserCommand	src/ServerCommands.cpp	/^void Server::handleUserCommand(int client_fd, std::istringstream& iss)$/;"	f	class:Server
+hashSimple	src/utils.cpp	/^unsigned int hashSimple(const std::string& in_str) {$/;"	f
+hashed_pass	include/Channel.hpp	/^    unsigned int	hashed_pass;$/;"	m	class:Channel
+hashed_pass	include/Server.hpp	/^    unsigned int hashed_pass;$/;"	m	class:Server
+inBuffs	include/Server.hpp	/^	std::map<int, std::string > inBuffs;$/;"	m	class:Server
+info	src/Logger.cpp	/^void Logger::info( const std::string &message) {$/;"	f	class:Logger
+instancePtr	include/Server.hpp	/^	static Server *instancePtr;$/;"	m	class:Server
+instancePtr	src/Server.cpp	/^Server *Server::instancePtr = NULL;$/;"	m	class:Server	file:
+intToString	src/utils.cpp	/^std::string intToString( int number ) {$/;"	f
+internalMessage	src/Channel.cpp	/^void Channel::internalMessage(const Client& client, const std::string message) const {$/;"	f	class:Channel
+inviteClient	src/Channel.cpp	/^void Channel::inviteClient(const Client& in_client, const Client& admin) {$/;"	f	class:Channel
+invite_only	include/Channel.hpp	/^    bool 			invite_only;$/;"	m	class:Channel
+invite_only	unused/Channel_old.hpp	/^		bool invite_only;$/;"	m	class:Channel
+invited_clients	include/Channel.hpp	/^    std::set<const Client*> invited_clients; \/\/ Declare the invited clients.$/;"	m	class:Channel
+isAuthenticated	src/Client.cpp	/^bool	Client::isAuthenticated(void) const { return is_authenticated; }$/;"	f	class:Client
+isInChannel	src/Client.cpp	/^bool	Client::isInChannel( const Channel &channel ) const {$/;"	f	class:Client
+isInChannel	src/Client.cpp	/^bool	Client::isInChannel( const Channel *channel ) const {$/;"	f	class:Client
+isOperator	unused/Channel_old.cpp	/^bool Channel::isOperator(int client_fd)$/;"	f	class:Channel
+isRegistered	src/Client.cpp	/^bool	Client::isRegistered(void) const { return (is_registered); }$/;"	f	class:Client
+is_authenticated	include/Client.hpp	/^	bool			is_authenticated;$/;"	m	class:Client
+is_registered	include/Client.hpp	/^	bool			is_registered;$/;"	m	class:Client
+join	unused/Channel_old.cpp	/^void Channel::join(int client_fd)$/;"	f	class:Channel
+joinChannel	src/Channel.cpp	/^void Channel::joinChannel(const Client& in_client, const std::string& password) {$/;"	f	class:Channel
+kickAdmin	src/Channel.cpp	/^void Channel::kickAdmin(const Client& target, const Client& admin) {$/;"	f	class:Channel
+kickClient	src/Channel.cpp	/^void Channel::kickClient(const Client& target, const Client& admin) {$/;"	f	class:Channel
+leaveChannel	src/Channel.cpp	/^void Channel::leaveChannel(const Client& in_client) {$/;"	f	class:Channel
+log	include/Server.hpp	/^	Logger log; \/\/ NOT const$/;"	m	class:Server
+logFile	include/Logger.hpp	/^		std::ofstream logFile;$/;"	m	class:Logger
+logFile	include/Server.hpp	/^	std::ofstream logFile;$/;"	m	class:Server
+main	src/main.cpp	/^int main(int argc, char* argv[]) {$/;"	f
+main	tests/tests.cpp	/^int main ()$/;"	f
+name	include/Channel.hpp	/^    std::string		name;$/;"	m	class:Channel
+name	unused/Channel_old.hpp	/^		std::string name;$/;"	m	class:Channel
+namechars	include/Client.hpp	/^	const static std::string namechars;$/;"	m	class:Client
+nick	include/Client.hpp	/^	std::string		nick;$/;"	m	class:Client
+outBuffs	include/Server.hpp	/^	std::map<int, std::vector<std::string> > outBuffs;$/;"	m	class:Server
+output	src/Logger.cpp	/^void Logger::output( const std::string &message ) {$/;"	f	class:Logger
+part	unused/Channel_old.cpp	/^void Channel::part(int client_fd)$/;"	f	class:Channel
+pass_required	include/Channel.hpp	/^	bool			pass_required;$/;"	m	class:Channel
+password	unused/Channel_old.hpp	/^		std::string password;$/;"	m	class:Channel
+processMessage	src/Server.cpp	/^void Server::processMessage(int client_fd, const std::string& message) {$/;"	f	class:Server
+promptRegistration	src/Server.cpp	/^void Server::promptRegistration(int client_fd) {$/;"	f	class:Server
+run	src/Server.cpp	/^void Server::run() {$/;"	f	class:Server
+sendMessages	src/Server.cpp	/^void Server::sendMessages(struct pollfd &fd)$/;"	f	class:Server
+sendMsgToChannel	src/ServerCommands.cpp	/^bool Server::sendMsgToChannel(int client_fd, const std::string &target, const std::string &msg) {$/;"	f	class:Server
+sendString	src/Server.cpp	/^void Server::sendString(int client_fd, const std::string &message) {$/;"	f	class:Server
+server	include/Channel.hpp	/^	Server &server;$/;"	m	class:Channel
+server	include/Client.hpp	/^	Server &server;$/;"	m	class:Client
+server_fd	include/Server.hpp	/^    int server_fd;$/;"	m	class:Server
+setAuthenticated	src/Client.cpp	/^void	Client::setAuthenticated(void) { is_authenticated = true; }$/;"	f	class:Client
+setNick	src/Client.cpp	/^void	Client::setNick(const std::string& in_nick) {$/;"	f	class:Client
+setPass	src/Channel.cpp	/^void	Channel::setPass(std::string& in_pass, const Client& admin) {$/;"	f	class:Channel
+setPassword	unused/Channel_old.cpp	/^void Channel::setPassword(const std::string& pass)$/;"	f	class:Channel
+setRegistered	src/Client.cpp	/^void	Client::setRegistered(void){$/;"	f	class:Client
+setTopic	src/Channel.cpp	/^void	Channel::setTopic(const std::string& in_topic, const Client& admin) {$/;"	f	class:Channel
+setTopic	unused/Channel_old.cpp	/^void Channel::setTopic(const std::string& new_topic)$/;"	f	class:Channel
+setUser	src/Client.cpp	/^void	Client::setUser(const std::string& in_username) {$/;"	f	class:Client
+timeStamp	src/utils.cpp	/^std::string timeStamp( void ) {$/;"	f
+topic	include/Channel.hpp	/^    std::string		topic;$/;"	m	class:Channel
+topic	unused/Channel_old.hpp	/^		std::string topic;$/;"	m	class:Channel
+topic_admins_only	include/Channel.hpp	/^    bool			topic_admins_only;$/;"	m	class:Channel
+topic_restricted	unused/Channel_old.hpp	/^		bool topic_restricted;$/;"	m	class:Channel
+user	include/Client.hpp	/^	std::string		user;$/;"	m	class:Client
+user_limit	unused/Channel_old.hpp	/^		int user_limit;$/;"	m	class:Channel
+validateName	src/Channel.cpp	/^void Channel::validateName(const std::string &name ) {$/;"	f	class:Channel
+validateNameHelper	src/Channel.cpp	/^static void validateNameHelper(const Server &server, const std::string &name ) {$/;"	f	file:
+validateNick	src/Client.cpp	/^static std::string validateNick( const Server &server, std::string nick ) {$/;"	f	file:
+validateUser	src/Client.cpp	/^static std::string validateUser( std::string name ) {$/;"	f	file:
+warn	src/Logger.cpp	/^void Logger::warn( const std::string &message ) {$/;"	f	class:Logger
 ~Channel	src/Channel.cpp	/^Channel::~Channel(void) {}$/;"	f	class:Channel
 ~Channel	unused/Channel_old.cpp	/^Channel::~Channel( void )$/;"	f	class:Channel
 ~Client	src/Client.cpp	/^Client::~Client( void ) {$/;"	f	class:Client

@@ -6,7 +6,7 @@
 /*   By: pyerima <pyerima@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 14:48:02 by pyerima           #+#    #+#             */
-/*   Updated: 2024/12/10 16:47:30 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/11 18:26:40 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -93,6 +93,7 @@ public:
 	Channel		&getChannelRef(const std::string &search) const;
 
 	void sendMessages(struct pollfd &fd);
+	void removeChannel( const Channel &channel );
 };
 
 #endif

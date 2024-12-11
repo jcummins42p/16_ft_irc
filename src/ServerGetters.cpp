@@ -6,7 +6,7 @@
 /*   By: jcummins <jcummins@student.42prague.com>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/06 15:23:17 by jcummins          #+#    #+#             */
-/*   Updated: 2024/12/10 21:51:40 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/11 17:19:33 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,7 +52,6 @@ Client &Server::getClientRef(const std::string &search) const {
 
 Channel* Server::getChannel(const std::string& search) const {
 	// Iterate through the channels
-	Channel::validateName(search); // checks that supplied string could even be valid
 	for (std::map<std::string, Channel*>::const_iterator it = channels.begin(); it != channels.end(); ++it) {
 		if (it->first == search)
 			return it->second; // Return the channel if found

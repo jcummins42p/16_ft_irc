@@ -6,7 +6,7 @@
 /*   By: pyerima <pyerima@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/04 17:00:44 by mmakagon          #+#    #+#             */
-/*   Updated: 2024/12/10 22:06:19 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/11 19:32:28 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,6 +47,7 @@ Channel::Channel( Server &server, const std::string& in_name, const Client& crea
 	clnts_limit(MAX_CLIENTS),
 	invite_only(false),
 	topic_admins_only(true),
+	topic_set(false),
 	pass_required(true)
 {
 	if (in_name.empty())
@@ -67,38 +68,41 @@ Channel::~Channel(void) {}
 
 /* PRIVATE METHODS */
 
-void Channel::internalMessage(const Client& client, const std::string message) const {
+void Channel::internalMessage(const Client &client, const std::string &message) const {
 	return server.sendString(client.getFd(), message.c_str());
 }
 
 /* GETTERS */
 
 const std::string&	Channel::getName(void) const { return (name); }
-
 const std::string&	Channel::getTopic(void) const { return (topic); }
-
+bool Channel::hasTopic(void) const { return (topic_set); }
 
 /* SETTERS */
 
-void	Channel::setTopic(const std::string& in_topic, const Client& admin) {
+void	Channel::setTopic(const std::string &in_topic, const Client &admin) {
 	if (topic_admins_only && admins.find(&admin) == admins.end())
 		throw std::runtime_error ("Admin rights required");
-	else if (in_topic.empty())
+	else if (in_topic.empty()) {
 		throw std::runtime_error ("Can't set an empty topic");
+	}
 	topic = in_topic;
+	topic_set = true;
 }
 
-void	Channel::setPass(std::string& in_pass, const Client& admin) {
+void	Channel::setPass(const std::string &in_pass, const Client &admin) {
 	if (admins.find(&admin) == admins.end())
 		throw std::runtime_error ("Admin rights required");
 	else if (in_pass.empty())
 		throw std::runtime_error ("Can't set an empty password!");
+	else if (in_pass.size() > MAX_PASS_LEN)
+		throw std::runtime_error ("Password length cannot exceed " + intToString(MAX_PASS_LEN));
 	hashed_pass = hashSimple(in_pass);
 }
 
 /* ADMIN FUNCTIONS */
 
-void	Channel::addClient(const Client& in_client, const Client& admin) {
+void	Channel::addClient(const Client &in_client, const Client &admin) {
 	if (admins.find(&admin) == admins.end())
 		throw std::runtime_error ("Admin rights required");
 	else if (clients.size() >= clnts_limit)
@@ -106,7 +110,7 @@ void	Channel::addClient(const Client& in_client, const Client& admin) {
 	clients.insert(&in_client);
 }
 
-void	Channel::addAdmin(const Client& in_client, const Client& admin) {
+void	Channel::addAdmin(const Client &in_client, const Client &admin) {
 	if (admins.find(&admin) == admins.end())
 		throw std::runtime_error("Admin rights required");
 	else if (clients.find(&in_client) == clients.end())
@@ -114,7 +118,7 @@ void	Channel::addAdmin(const Client& in_client, const Client& admin) {
 	admins.insert(&in_client);
 }
 
-void Channel::kickClient(const Client& target, const Client& admin) {
+void Channel::kickClient(const Client &target, const Client &admin) {
 	if (admins.find(&admin) == admins.end())
 		throw (std::runtime_error("Admin rights required"));
 	if (clients.find(&target) == clients.end())
@@ -123,10 +127,10 @@ void Channel::kickClient(const Client& target, const Client& admin) {
 		throw (std::runtime_error("Cannot kick admin"));
 	internalMessage(target, "You have been kicked from " + getName()
 							+ " by " + admin.getNick() + ", bye.");
-	clients.erase(&target);  // Remove the user from the channel
+	removeClient( target );
 }
 
-void Channel::kickAdmin(const Client& target, const Client& admin) {
+void Channel::kickAdmin(const Client &target, const Client &admin) {
 	if (admins.find(&admin) == admins.end())
 		throw (std::runtime_error("Admin rights required"));
 	else if (clients.find(&target) == clients.end())
@@ -145,7 +149,7 @@ void Channel::kickAdmin(const Client& target, const Client& admin) {
 
 /* JOIN - LEAVE */
 
-void Channel::joinChannel(const Client& in_client, const std::string& password) {
+void Channel::joinChannel(const Client &in_client, const std::string &password) {
 	// Check if the channel is invite-only and if the client is invited.
 	if (clients.find(&in_client) != clients.end())
 		throw std::runtime_error("Already a member of " + getName());
@@ -162,19 +166,18 @@ void Channel::joinChannel(const Client& in_client, const std::string& password) 
 	clients.insert(&in_client);
 }
 
-void Channel::leaveChannel(const Client& in_client) {
+void Channel::removeClient(const Client &in_client) {
 	admins.erase(&in_client);  // Remove admin rights if applicable.
 	clients.erase(&in_client); // Remove the client from the channel.
 
 	// Reassign admin rights if the last admin leaves:
 	if (admins.empty() && !clients.empty()) {
 		admins.insert(*clients.begin());  // Assign the first client as the new admin
-		internalMessage(**clients.begin(), "You are now the channel admin.\n");  // Correctly pass the reference
+		internalMessage(**clients.begin(), "You are now channel admin for " + getName());
 	}
 	// If there are no clients left, you can clean up or close the channel.
 	if (clients.empty()) {
-		// Clean up the channel or leave it open for future clients (optional logic)
-		// Example: delete the channel, or make it inactive
+		throw std::exception();
 	}
 }
 
@@ -183,16 +186,14 @@ void Channel::leaveChannel(const Client& in_client) {
 void Channel::channelMessage(const std::string &message, const Client &sender) {
 	for (std::set<const Client*>::iterator it = clients.begin(); it != clients.end(); ++it) {
 		// Don't send the message back to the sender
-		if (*it != &sender) {
+		if (*it != &sender)
 			server.sendString((*it)->getFd(), message);
-			//send((*it)->getFd(), message.c_str(), message.size(), 0);
-		}
 	}
 }
 
 /* INVITE MANAGEMENT */
 
-void Channel::inviteClient(const Client& in_client, const Client& admin) {
+void Channel::inviteClient(const Client &in_client, const Client &admin) {
 	if (admins.find(&admin) == admins.end()) {
 		internalMessage(admin, "You don't have admin rights!");
 		return;

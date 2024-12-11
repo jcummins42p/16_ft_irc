@@ -6,7 +6,7 @@
 /*   By: pyerima <pyerima@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 14:48:02 by pyerima           #+#    #+#             */
-/*   Updated: 2024/12/10 18:34:27 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/11 18:30:41 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -259,4 +259,11 @@ Channel *Server::createChannel(int client_fd, std::string chName, std::string pa
 	log.info( getClientRef(client_fd).getNick() + " (fd " + intToString(client_fd)
 			+ ") created channel " + output->getName());
 	return (output);
+}
+
+void	Server::removeChannel( const Channel &channel ) {
+	if (!channel.getName().empty()) {
+		std::cout << "Attempting to remove " + channel.getName();
+		channels.erase(channel.getName());
+	}
 }

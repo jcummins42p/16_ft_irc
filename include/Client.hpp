@@ -6,7 +6,7 @@
 /*   By: mmakagon <mmakagon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 14:48:02 by pyerima           #+#    #+#             */
-/*   Updated: 2024/12/09 18:59:07 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/11 19:06:31 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,15 +33,15 @@ public:
 	const std::string&	getNick(void) const;
 	const std::string&	getUser(void) const;
 
-	void				setAuthenticated(void);
-	bool				isAuthenticated(void) const;
+	void	setAuthenticated(void);
+	bool	isAuthenticated(void) const;
 
 	void	setRegistered(void);
 	bool	isRegistered(void) const;
 
-	void				setNick(const std::string& in_nick);
-	void				setUser(const std::string& in_username);
-	void				leaveChannel( const Channel &channel );
+	void	setNick(const std::string& in_nick);
+	void	setUser(const std::string& in_username);
+	void	leaveChannel( const Channel &channel );
 
 	bool	isInChannel( const Channel &channel ) const;
 	bool	isInChannel( const Channel *channel ) const;

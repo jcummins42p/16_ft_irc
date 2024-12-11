@@ -6,7 +6,7 @@
 /*   By: jcummins <jcummins@student.42prague.com>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/06 15:21:19 by jcummins          #+#    #+#             */
-/*   Updated: 2024/12/10 22:11:36 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/11 19:35:49 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,7 +76,8 @@ void Server::handleJoinCommand(int client_fd, std::istringstream& iss) {
 			log.info(getClientRef(client_fd).getNick()
 					+ " joined existing channel " + channel->getName());
 			sendString(client_fd, "Joined channel " + channel->getName());
-			sendString(client_fd, channel->getName() + " topic: " + channel->getTopic());
+			if (channel->hasTopic())
+				sendString(client_fd, channel->getName() + " topic: " + channel->getTopic());
 		} catch (std::exception &e) {
 			log.error("Join: " + getClientRef(client_fd).getNick()
 					+ " failed to join: " + std::string(e.what()));
@@ -90,13 +91,23 @@ void Server::handlePartCommand(int client_fd, std::istringstream& iss)
 	std::string channel_name;
 	iss >> channel_name;
 
-	if (channels.find(channel_name) != channels.end()) {
-		channels[channel_name]->leaveChannel(*clients[client_fd]);
-		sendString(client_fd, "Left channel: " + channel_name );
-		channels[channel_name]->channelMessage(clients[client_fd]->getNick()
-				+ " has left the channel.", *clients[client_fd]);
-	} else {
-		sendString(client_fd, "Channel not found");
+	try {
+		Channel &channel = getChannelRef(channel_name);
+		if (!getClientRef(client_fd).isInChannel(channel))
+			throw (std::runtime_error("Not in channel " + channel_name));
+		channel.removeClient(*clients[client_fd]);
+		sendString(client_fd, channel_name + ": you left channel" + channel_name );
+		channel.channelMessage(channel_name + ": " + clients[client_fd]->getNick()
+				+ " has left channel", *clients[client_fd]);
+	}
+	catch (std::runtime_error &e) {
+		log.error("Part: " + std::string(e.what()));
+		sendString(client_fd, std::string(e.what()));
+	}
+	catch (std::exception &e) {
+		log.error("Closing empty channel " + channel_name);
+		sendString(client_fd, "Closing empty channel " + channel_name);
+		channels.erase(channel_name);
 	}
 }
 
@@ -168,14 +179,14 @@ void Server::handleTopicCommand(int client_fd, std::istringstream& iss)
 				+ " topic changed by " + getClientRef(client_fd).getNick()
 				+ " to '" + new_topic + "'", *clients[client_fd]);
 	} catch (std::exception &e) {
-		log.error("Privmsg: " + std::string(e.what()));
+		log.error("Topic: " + std::string(e.what()));
 		sendString(client_fd, std::string(e.what()));
 	}
 }
 
 void Server::handleModeCommand(int client_fd, std::istringstream& iss)
 {
-	std::string channel_name, mode, input;
+	std::string channel_name, mode, input, message;
 	bool toggle = false;
 	iss >> channel_name >> mode; // read channel name and mode
 
@@ -187,18 +198,21 @@ void Server::handleModeCommand(int client_fd, std::istringstream& iss)
 		else if (mode[0] != '-')
 			throw std::runtime_error("Mode switch must start with '-' or '+");
 		std::getline(iss, input);
+		colonectomy(input);
 		if (mode[1] == 'i')
-			getChannelRef(channel_name).handleModeInvite(client_fd, input, toggle);
+			message = getChannelRef(channel_name).handleModeInvite(client_fd, input, toggle);
 		else if (mode[1] == 't')
-			getChannelRef(channel_name).handleModeTopic(client_fd, input, toggle);
+			message = getChannelRef(channel_name).handleModeTopic(client_fd, input, toggle);
 		else if (mode[1] == 'k')
-			getChannelRef(channel_name).handleModeKey(client_fd, input, toggle);
+			message = getChannelRef(channel_name).handleModeKey(client_fd, input, toggle);
 		else if (mode[1] == 'o')
-			getChannelRef(channel_name).handleModeOperator(client_fd, input, toggle);
+			message = getChannelRef(channel_name).handleModeOperator(client_fd, input, toggle);
 		else if (mode[1] == 'l')
-			getChannelRef(channel_name).handleModeUserLimit(client_fd, input, toggle);
+			message = getChannelRef(channel_name).handleModeUserLimit(client_fd, input, toggle);
 		else
 			throw std::runtime_error("Invalid mode '" + mode + "'");
+		log.info("Mode: " + message);
+		sendString(client_fd, message);
 	}
 	catch (std::exception &e) {
 		log.error("Mode: " + std::string(e.what()));
