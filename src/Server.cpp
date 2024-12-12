@@ -6,7 +6,7 @@
 /*   By: pyerima <pyerima@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 14:48:02 by pyerima           #+#    #+#             */
-/*   Updated: 2024/12/11 18:30:41 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/12 23:18:09 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,9 @@ Server *Server::getInstance(int port, const std::string &in_pass) {
 	return instancePtr;
 }
 
-Server::Server(int port, const std::string& in_pass) {
+Server::Server(int port, const std::string& in_pass) :
+	_running(true)
+{
 	server_fd = socket(AF_INET, SOCK_STREAM, 0);
 	struct sockaddr_in server_addr;
 	server_addr.sin_family = AF_INET;
@@ -46,16 +48,12 @@ Server::~Server(void) {
 		close(it->first);
 		delete it->second;
 	}
-
-	for (std::map<std::string, Channel*>::iterator it = channels.begin(); it != channels.end(); ++it) {
+	for (std::map<std::string, Channel*>::iterator it = channels.begin(); it != channels.end(); ++it)
 		delete it->second;
-	}
 	close(server_fd);
-
 	log.info("Server shutting down.");
-	if (logFile.is_open()) {
+	if (logFile.is_open())
 		logFile.close();
-	}
 }
 
 //	General functions
@@ -64,12 +62,10 @@ void Server::run() {
 	fds[0].fd = server_fd;
 	fds[0].events = POLLIN;
 
-	for (int i = 1; i <= MAX_CLIENTS; i++) {
+	for (int i = 1; i <= MAX_CLIENTS; i++)
 		fds[i].fd = -1;
-	}
-
 	log.info("Server is running. Waiting for connections...");
-	while (true) { // waits for results on the monitored file descriptors
+	while (_running) { // waits for results on the monitored file descriptors
 		int ret = poll(fds, MAX_CLIENTS + 1, -1);
 		if (ret < 0) {
 			log.error("poll() failed");
@@ -78,15 +74,19 @@ void Server::run() {
 		for (int i = 0; i <= MAX_CLIENTS; i++) {
 			// check for readable events POLLIN
 			if (fds[i].revents & POLLIN) {
-				if (fds[i].fd == server_fd) {
+				if (fds[i].fd == server_fd)
 					acceptClient(fds);
-				} else {
+				else
 					handleClient(fds[i].fd);
-				}
 			}
 			sendMessages(fds[i]);
 		}
 	}
+}
+
+void Server::broadcastMessage(const std::string &message) {
+	for (std::map<int, Client*>::iterator it = clients.begin(); it != clients.end(); ++it)
+		sendString(it->second->getFd(), message);
 }
 
 void Server::sendMessages(struct pollfd &fd)
@@ -179,9 +179,8 @@ void Server::handleClient(int client_fd) {
 		inBuffs[client_fd].erase(0, pos + 2);
 		log.info("Received message from fd " + intToString(client_fd) + ": " + message);
 		//	need to handle messages which end with \r\n to comply with irc
-		if (!message.empty() && message[message.size() - 1] == '\r' ) {
+		if (!message.empty() && message[message.size() - 1] == '\r' )
 			message[message.size() - 1] = '\0';
-		}
 		if (!handleAuth(client_fd, message))
 			processMessage(client_fd, message);
 	}
@@ -245,14 +244,20 @@ void Server::processMessage(int client_fd, const std::string& message) {
 		handleModeCommand(client_fd, iss);
 	} else if (command == "KICK") {
 		handleKickCommand(client_fd, iss);
+	} else if (command == "BAN") {
+		handleBanCommand(client_fd, iss);
 	} else if (command == "INVITE") {
 		handleInviteCommand(client_fd, iss);
+	} else if (command == "LIST") {
+		handleListCommand(client_fd);
+	} else if (command == "DIE") {
+		handleDieCommand(client_fd);
 	} else {
 		log.info("Unhandled message from fd " + intToString(client_fd) + ": " + message);
 	}
 }
 
-Channel *Server::createChannel(int client_fd, std::string chName, std::string passwd) {
+Channel *Server::createChannel(int client_fd, const std::string &chName, const std::string &passwd) {
 	Channel *output = new Channel(*this, chName, *clients[client_fd], passwd);
 	channels[chName] = output;  // Add the new channel to the map
 	sendString(client_fd, "Made new channel '" + output->getName() + "' successfully.");

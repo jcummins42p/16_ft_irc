@@ -6,7 +6,7 @@
 /*   By: pyerima <pyerima@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 14:48:02 by pyerima           #+#    #+#             */
-/*   Updated: 2024/12/11 18:26:40 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/12 23:14:25 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,9 +39,10 @@ private:
 	//	poll fd str
     struct pollfd fds[MAX_CLIENTS + 1];
 
+	bool _running;
     int server_fd;
     unsigned int hashed_pass;
-    std::map<int, Client*> clients;
+    std::map<int, Client *> clients;
     std::map<std::string, Channel*> channels;
 	std::ofstream logFile;
 
@@ -50,27 +51,31 @@ private:
 	std::map<int, std::string > inBuffs;
 	std::map<int, std::vector<std::string> > outBuffs;
 
-    void acceptClient(struct pollfd* fds);
+    void acceptClient(struct pollfd *fds);
 	void handleDisconnect(int client_fd, int bytes_received);
     void handleClient(int client_fd);
 	int handleAuth(int client_fd, const std::string &message);
 	void promptRegistration(int client_fd);
-    void processMessage(int client_fd, const std::string& message);
+    void processMessage(int client_fd, const std::string &message);
+	void broadcastMessage(const std::string &message);
 
-	Channel *createChannel(int client_fd, std::string chName, std::string passwd);
+	Channel *createChannel(int client_fd, const std::string &chName, const std::string &passwd);
 
     // Command handlers
-    void handleNickCommand(int client_fd, std::istringstream& iss);
-    void handleUserCommand(int client_fd, std::istringstream& iss);
-    void handleJoinCommand(int client_fd, std::istringstream& iss);
-    void handlePartCommand(int client_fd, std::istringstream& iss);
+    void handleNickCommand(int client_fd, std::istringstream &iss);
+    void handleUserCommand(int client_fd, std::istringstream &iss);
+    void handleJoinCommand(int client_fd, std::istringstream &iss);
+    void handlePartCommand(int client_fd, std::istringstream &iss);
 	bool sendMsgToChannel(int client_fd, const std::string &target, const std::string &msg);
-    void handlePrivmsgCommand(int client_fd, std::istringstream& iss);
+    void handlePrivmsgCommand(int client_fd, std::istringstream &iss);
     void handleQuitCommand(int client_fd);
-    void handleTopicCommand(int client_fd, std::istringstream& iss);
-    void handleModeCommand(int client_fd, std::istringstream& iss);
-    void handleKickCommand(int client_fd, std::istringstream& iss);
-    void handleInviteCommand(int client_fd, std::istringstream& iss);
+    void handleTopicCommand(int client_fd, std::istringstream &iss);
+    void handleModeCommand(int client_fd, std::istringstream &iss);
+    void handleKickCommand(int client_fd, std::istringstream &iss);
+    void handleBanCommand(int client_fd, std::istringstream &iss);
+    void handleInviteCommand(int client_fd, std::istringstream &iss);
+	void handleListCommand(int client_fd);
+	void handleDieCommand(int client_fd);
 
 	Logger log; // NOT const
 

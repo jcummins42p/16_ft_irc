@@ -6,7 +6,7 @@
 /*   By: pyerima <pyerima@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/04 14:58:10 by mmakagon          #+#    #+#             */
-/*   Updated: 2024/12/11 21:35:58 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/12 22:11:09 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,16 +30,20 @@ private:
     std::string		name;
     std::string		topic;
     unsigned int	hashed_pass;
-    size_t			clnts_limit;
-    bool 			invite_only;
-    bool			topic_admins_only;
-	bool			topic_set;
-	bool			pass_required;
+	//	MODE SWITCHES
+    size_t	clnts_limit;
+    bool 	invite_only;
+    bool	topic_admins_only;
+	bool	topic_set;
+	bool	locked;
+	bool	secret;
+	//	CLIENT LISTS
     std::set<const Client*> clients;
     std::set<const Client*> admins;
     std::set<const Client*> invited_clients; // Declare the invited clients.
-											 //
-    void internalMessage(const Client &client, const std::string &message) const;
+    std::set<const Client*> banned_clients;
+
+	void internalMessage(const Client &client, const std::string &message) const;
 
 public:
     // Constructor / Destructor
@@ -53,25 +57,30 @@ public:
     const std::string &getTopic(void) const;
     void setTopic(const std::string& in_topic, const Client& admin);
 	bool hasTopic(void) const;
+	bool isSecret(void) const;
 
     // Password management
     void setPass(const std::string &in_pass, const Client& admin);
 
     // Channel management
     void addClient(const Client &target, const Client &admin);
+    void removeClient(const Client &target);
+	// Admin rights
     void addAdmin(const Client &target, const Client &admin);
     void revokeAdmin(const Client &target, const Client &admin);
     void kickClient(const Client &target, const Client &admin);
-    void kickAdmin(const Client &target, const Client &admin);
 	void setUserLimit(const long &newlimit, const Client &admin);
+	// Ban management
+	void banClient(const Client &toban, const Client &admin);
+	void revokeBan(const Client &unban, const Client &admin);
 
     // Join/Leave
     void joinChannel(const Client &target, const std::string &password); // Updated declaration.
-    void removeClient(const Client &target);
 	void create(const Client &creator, const std::string &password); //
 
     // Invite management
     void inviteClient(const Client &target, const Client &admin); // Declare the inviteClient method.
+    void revokeInvite(const Client &target, const Client &admin); // Declare the inviteClient method.
 
     // Group messaging
     void channelMessage( const std::string &message, const Client &sender) ;
@@ -85,6 +94,7 @@ public:
 	std::string handleModeKey(int client_fd, const std::string &input, bool toggle);
 	void handleModeOperator(int client_fd, const std::string &input, bool toggle);
 	std::string handleModeUserLimit(int client_fd, const std::string &input, bool toggle);
+	std::string handleModeSecret(bool toggle);
 };
 
 #endif

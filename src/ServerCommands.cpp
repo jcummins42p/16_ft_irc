@@ -6,7 +6,7 @@
 /*   By: jcummins <jcummins@student.42prague.com>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/06 15:21:19 by jcummins          #+#    #+#             */
-/*   Updated: 2024/12/11 21:02:42 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/12 23:23:06 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -86,19 +86,18 @@ void Server::handleJoinCommand(int client_fd, std::istringstream& iss) {
 	}
 }
 
-void Server::handlePartCommand(int client_fd, std::istringstream& iss)
+void Server::handlePartCommand(int client_fd, std::istringstream &iss)
 {
 	std::string channel_name;
 	iss >> channel_name;
 
 	try {
 		Channel &channel = getChannelRef(channel_name);
-		if (!getClientRef(client_fd).isInChannel(channel))
-			throw (std::runtime_error("Not in channel " + channel_name));
-		channel.removeClient(*clients[client_fd]);
-		sendString(client_fd, channel_name + ": you left channel " + channel_name );
+		//if (!getClientRef(client_fd).isInChannel(channel))
+			//throw (std::runtime_error("Not in channel " + channel_name));
 		channel.channelMessage(channel_name + ": " + clients[client_fd]->getNick()
 				+ " has left channel", *clients[client_fd]);
+		channel.removeClient(*clients[client_fd]);
 	}
 	catch (std::runtime_error &e) {
 		log.error("Part: " + std::string(e.what()));
@@ -116,8 +115,8 @@ bool Server::sendMsgToChannel(int client_fd, const std::string &target, const st
 		return (1);
 	// Look for the channel by name
 	Channel* channel = getChannel(target);
-	if (!getClientRef(client_fd).isInChannel(channel))
-		throw (std::runtime_error("Not in channel " + target));
+	//if (!getClientRef(client_fd).isInChannel(channel))
+		//throw (std::runtime_error("Not in channel " + target));
 	std::string formattedMsg = channel->getName()
 		+ " message from " + clients[client_fd]->getNick() + ": " + msg;
 	channel->channelMessage(formattedMsg, *clients[client_fd]);
@@ -134,7 +133,7 @@ static void colonectomy( std::string &msg ) {
 	}
 }
 
-void Server::handlePrivmsgCommand(int client_fd, std::istringstream& iss) {
+void Server::handlePrivmsgCommand(int client_fd, std::istringstream &iss) {
 	std::string target;
 	std::string msg;
 	iss >> target;
@@ -163,7 +162,7 @@ void Server::handleQuitCommand(int client_fd)
 	clients.erase(client_fd); // Remove client from the map
 }
 
-void Server::handleTopicCommand(int client_fd, std::istringstream& iss)
+void Server::handleTopicCommand(int client_fd, std::istringstream &iss)
 {
 	std::string channel_name, new_topic;
 	iss >> channel_name; // read channel name
@@ -181,7 +180,7 @@ void Server::handleTopicCommand(int client_fd, std::istringstream& iss)
 	}
 }
 
-void Server::handleModeCommand(int client_fd, std::istringstream& iss)
+void Server::handleModeCommand(int client_fd, std::istringstream &iss)
 {
 	std::string channel_name, mode, input, message;
 	bool toggle = false;
@@ -209,6 +208,8 @@ void Server::handleModeCommand(int client_fd, std::istringstream& iss)
 		}
 		else if (mode[1] == 'l')
 			message = channel.handleModeUserLimit(client_fd, input, toggle);
+		else if (mode[1] == 's')
+			message = channel.handleModeSecret(toggle);
 		else
 			throw std::runtime_error("Invalid mode '" + mode + "'");
 		log.info("Mode: " + message);
@@ -220,7 +221,7 @@ void Server::handleModeCommand(int client_fd, std::istringstream& iss)
 	}
 }
 
-void Server::handleKickCommand(int client_fd, std::istringstream& iss) {
+void Server::handleKickCommand(int client_fd, std::istringstream &iss) {
 	std::string channel_name, target;
 	iss >> channel_name >> target; // read channel name and target nickname
 
@@ -237,9 +238,61 @@ void Server::handleKickCommand(int client_fd, std::istringstream& iss) {
 	}
 }
 
-void Server::handleInviteCommand(int client_fd, std::istringstream& iss) {
+void Server::handleBanCommand(int client_fd, std::istringstream &iss) {
+	std::string channel_name, target;
+	iss >> channel_name >> target; // read channel name and target nickname
+
+	log.info("Client " + intToString(client_fd) + " attempting to ban "
+			+ target + " from channel " + channel_name);
+	try {
+		getChannelRef(channel_name).banClient(getClientRef(target), getClientRef(client_fd));
+		sendString(client_fd, "Successfully banned " + target
+				+ " from channel " + channel_name);
+	}
+	catch ( std::runtime_error &e ) {
+		log.error("Ban: " + std::string(e.what()));
+		sendString(client_fd, std::string(e.what()));
+	}
+}
+
+void Server::handleInviteCommand(int client_fd, std::istringstream &iss) {
 	std::string target_nick, channel_name;
-	iss >> target_nick >> channel_name; // Read target nickname and channel name
-	// Simplified handling
-	std::cout << "Client " << client_fd << " invited " << target_nick << " to channel " << channel_name << std::endl;
+	iss >> target_nick >> channel_name;
+	try {
+		getChannelRef(channel_name).inviteClient(getClientRef(target_nick), getClientRef(client_fd));
+	} catch (std::exception &e) {
+		log.error("Invite: " + std::string(e.what()));
+		sendString(client_fd, std::string(e.what()));
+	}
+}
+
+void Server::handleListCommand(int client_fd) {
+	try
+	{
+		if (channels.empty())
+			throw std::runtime_error("No active channels on this server!");
+		for (std::map<std::string, Channel*>::iterator it = channels.begin(); it != channels.end(); ++it)
+		{
+			Channel *channel = it->second;
+			if (!channel->isSecret() || channel->containsMember(getClientRef(client_fd)))
+				sendString(client_fd, channel->getName());
+		}
+	}
+	catch (std::runtime_error &e) {
+		log.error("List: " + std::string(e.what()));
+		sendString(client_fd, std::string(e.what()));
+	}
+}
+
+void Server::handleDieCommand(int client_fd) {
+	static int timescalled = 0;
+	broadcastMessage("Server shutting down, please close your session");
+	// broadcast message isn't working, it seems. Perhaps it needs more cycles
+	// to actually send what this puts in the outbuffer
+	// likely we want to set a time limit in the main loop to live for, while sending messages
+	(void) client_fd;
+	if (timescalled++ == 1)
+		_running = false;
+	// obviously this needs more checks, and if the fd 5 user leaves then it cannot be shut
+	// but is this reallt a problem? It's just there to demonstrate the destructor.
 }

@@ -6,15 +6,14 @@
 /*   By: jcummins <jcummins@student.42prague.c      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/04 17:43:14 by jcummins          #+#    #+#             */
-/*   Updated: 2024/12/11 21:39:25 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/12 22:40:14 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Channel.hpp"
 
-// This is working
 std::string Channel::handleModeInvite(int client_fd, const std::string &input, bool toggle) {
-	std::string message = getName() + " invite mode ";
+	std::string message = getName() + ": invite mode ";
 	std::istringstream iss(input);
 	std::string	invite;
 
@@ -36,9 +35,8 @@ std::string Channel::handleModeInvite(int client_fd, const std::string &input, b
 	return (message);
 }
 
-//	This is working
 std::string Channel::handleModeTopic(int client_fd, const std::string &input, bool toggle)  {
-	std::string message = getName() + " topic lock ";
+	std::string message = getName() + ": topic lock ";
 
 	if (toggle)
 		message += "ON";
@@ -52,9 +50,8 @@ std::string Channel::handleModeTopic(int client_fd, const std::string &input, bo
 	return (message);
 }
 
-//	This is working
 std::string Channel::handleModeKey(int client_fd, const std::string &input, bool toggle) {
-	std::string message = getName() + " password mode ";
+	std::string message = getName() + ": password mode ";
 	if (toggle) {
 		message += "ON";
 		setPass(input, server.getClientRef(client_fd));
@@ -62,14 +59,14 @@ std::string Channel::handleModeKey(int client_fd, const std::string &input, bool
 	}
 	else
 		message += "OFF";
-	pass_required = toggle;
+	locked = toggle;
 	return (message);
 }
 
-//	Works but sends too many messages
 void Channel::handleModeOperator(int client_fd, const std::string &input, bool toggle)  {
 	std::istringstream iss(input);
 	std::string	target;
+	int	n_valid = 0;
 
 	while (iss >> target)
 	{
@@ -81,16 +78,18 @@ void Channel::handleModeOperator(int client_fd, const std::string &input, bool t
 				revokeAdmin(server.getClientRef(target), server.getClientRef(client_fd));
 				server.sendString(client_fd, "Removed " + target + " from " + getName() + " admin");
 			}
+			n_valid++;
 		}
 		catch (std::exception &e) {
 			server.sendString(client_fd, std::string(e.what()));
 		}
 	}
+	if (n_valid == 0)
+		throw std::runtime_error("Provide at least one valid client");
 }
 
-//	Working
 std::string Channel::handleModeUserLimit(int client_fd, const std::string &input, bool toggle)  {
-	std::string message = getName() + " user limit mode ";
+	std::string message = getName() + ": user limit mode ";
 
 	if (toggle) {
 		message += "ON";
@@ -102,5 +101,13 @@ std::string Channel::handleModeUserLimit(int client_fd, const std::string &input
 		message += "OFF";
 		clnts_limit = SIZE_MAX;
 	}
+	return (message);
+}
+
+std::string Channel::handleModeSecret(bool toggle) {
+	std::string message = getName() + ": secret mode ";
+
+	message += (toggle ? "ON" : "OFF");
+	secret = toggle;
 	return (message);
 }
