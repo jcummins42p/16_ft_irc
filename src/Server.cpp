@@ -6,7 +6,7 @@
 /*   By: pyerima <pyerima@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 14:48:02 by pyerima           #+#    #+#             */
-/*   Updated: 2024/12/13 16:24:43 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/13 18:18:49 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -219,7 +219,9 @@ int Server::handleAuth(int client_fd, const std::string &message)
 	return (0);
 }
 
-void Server::promptRegistration(int client_fd) {
+void Server::checkRegistration(int client_fd) {
+	if (getClientRef(client_fd).isRegistered())
+		return ;
 	std::string message = "You are not registered.\nPlease set a ";
 	if (getClientRef(client_fd).getNick().empty()) {
 		message += "NICK ";
@@ -229,20 +231,27 @@ void Server::promptRegistration(int client_fd) {
 	else
 		message += "USER ";
 	message += "name.";
-	sendString(client_fd, message);
+	throw std::runtime_error(message);
 }
 
-void Server::processMessage(int client_fd, const std::string& message) {
-	std::istringstream iss(message);
-	std::string command;
+void Server::processMessage(int client_fd, const std::string& input) {
+	std::istringstream iss(input);
+	std::string command, err_message;
 	iss >> command;
 
 	//	Removed the if/else forest and use function pointers in a map instead
-	std::map<std::string, ServCommandHandler>::iterator it = commandHandlers.find(command);
-	if (it != commandHandlers.end()) {
-		(this->*(it->second))(client_fd, iss);
-	} else {
-		log.info("Unhandled message from fd " + intToString(client_fd) + ": " + message);
+	try {
+		if (command != "USER" && command != "NICK")
+			checkRegistration(client_fd);
+		std::map<std::string, ServCommandHandler>::iterator it = commandHandlers.find(command);
+		if (it != commandHandlers.end())
+			(this->*(it->second))(client_fd, iss);
+		else
+			throw std::runtime_error("Unrecognised command " + command);
+	}
+	catch (std::exception &e) {
+		sendString(client_fd, std::string(e.what()));
+		log.error("ProcessMessage: client fd " + intToString(client_fd) + ": " + std::string(e.what()));
 	}
 }
 

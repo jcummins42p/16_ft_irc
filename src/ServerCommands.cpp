@@ -6,7 +6,7 @@
 /*   By: jcummins <jcummins@student.42prague.com>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/06 15:21:19 by jcummins          #+#    #+#             */
-/*   Updated: 2024/12/13 15:57:00 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/13 18:45:53 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,6 +55,8 @@ void Server::handleJoinCommand(int client_fd, std::istringstream& iss) {
 	std::string password;
 	iss >> channelName >> password;
 
+	if (channelName.empty())
+	   channelName = "#Default";
 	Channel* channel = getChannel(channelName);
 	if (channel == NULL) {	// If the channel doesn't exist, create it
 		try { channel = createChannel(client_fd, channelName, password); }
@@ -70,9 +72,6 @@ void Server::handleJoinCommand(int client_fd, std::istringstream& iss) {
 			channel->joinChannel(*clients[client_fd], password);
 			log.info(getClientRef(client_fd).getNick()
 					+ " joined existing channel " + channel->getName());
-			sendString(client_fd, "Joined channel " + channel->getName());
-			if (channel->hasTopic())
-				sendString(client_fd, channel->getName() + " topic: " + channel->getTopic());
 		} catch (std::exception &e) {
 			log.error("Join: " + getClientRef(client_fd).getNick()
 					+ " failed to join: " + std::string(e.what()));
@@ -225,6 +224,9 @@ void Server::handleInviteCommand(int client_fd, std::istringstream &iss) {
 
 void Server::handleListCommand(int client_fd, std::istringstream &iss) {
 	(void) iss;
+	std::string message = "";
+	int	listlen = 0;
+
 	try
 	{
 		if (channels.empty())
@@ -232,9 +234,15 @@ void Server::handleListCommand(int client_fd, std::istringstream &iss) {
 		for (std::map<std::string, Channel*>::iterator it = channels.begin(); it != channels.end(); ++it)
 		{
 			Channel *channel = it->second;
-			if (!channel->isSecret() || channel->containsMember(getClientRef(client_fd)))
-				sendString(client_fd, channel->getName());
+			if (!channel->isSecret() || channel->containsMember(getClientRef(client_fd))) {
+				if (listlen++ > 0)
+					message += "\n";
+				message += channel->getName();
+				if (channel->hasTopic())
+					message += ": Topic: " + channel->getTopic();
+			}
 		}
+		sendString(client_fd, message);
 	}
 	catch (std::runtime_error &e) {
 		log.error("List: " + std::string(e.what()));

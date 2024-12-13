@@ -6,7 +6,7 @@
 /*   By: mmakagon <mmakagon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 14:48:02 by pyerima           #+#    #+#             */
-/*   Updated: 2024/12/10 17:31:17 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/13 17:34:21 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@ const static std::string allowedchars = "`|^_-{}[]\\";
 Client::Client(int fd, Server &server) :
 	fd(fd),
 	is_authenticated(false),
+	is_registered(false),
 	server(server)
 {}
 

@@ -6,7 +6,7 @@
 /*   By: pyerima <pyerima@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/04 17:00:44 by mmakagon          #+#    #+#             */
-/*   Updated: 2024/12/13 16:17:22 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/13 18:03:52 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,12 +56,12 @@ Channel::Channel( Server &server, std::string in_name, const Client& creator, co
 	clients.insert(&creator);		   // Add the creator as the first client.
 	admins.insert(&creator);			// Set the creator as the initial admin.
 	//	Set mode handler function map
-	modeHandlers['i'] == &Channel::handleModeInvite;
-	modeHandlers['t'] == &Channel::handleModeTopic;
-	modeHandlers['k'] == &Channel::handleModeKey;
-	modeHandlers['o'] == &Channel::handleModeOperator;
-	modeHandlers['l'] == &Channel::handleModeUserLimit;
-	modeHandlers['s'] == &Channel::handleModeSecret;
+	modeHandlers['i'] = &Channel::handleModeInvite;
+	modeHandlers['t'] = &Channel::handleModeTopic;
+	modeHandlers['k'] = &Channel::handleModeKey;
+	modeHandlers['o'] = &Channel::handleModeOperator;
+	modeHandlers['l'] = &Channel::handleModeUserLimit;
+	modeHandlers['s'] = &Channel::handleModeSecret;
 }
 
 Channel::~Channel(void) {}
@@ -213,6 +213,9 @@ void Channel::joinChannel(const Client &target, const std::string &password) {
 			throw std::runtime_error(getName() + ": Incorrect password");
 		}
 	}
+	internalMessage(target, name + ": You have joined the channel");
+	if (hasTopic())
+		internalMessage(target, "Topic: " + getTopic());
 	// Add the client to the channel.
 	clients.insert(&target);
 	channelMessage(getName() + ": " + target.getNick() + " joined the channel!", target);

@@ -6,7 +6,7 @@
 /*   By: pyerima <pyerima@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 14:48:02 by pyerima           #+#    #+#             */
-/*   Updated: 2024/12/13 15:07:05 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/13 18:18:06 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,7 +55,7 @@ private:
 	void handleDisconnect(int client_fd, int bytes_received);
     void handleClient(int client_fd);
 	int handleAuth(int client_fd, const std::string &message);
-	void promptRegistration(int client_fd);
+	void checkRegistration(int client_fd);
     void processMessage(int client_fd, const std::string &message);
 	void broadcastMessage(const std::string &message);
 

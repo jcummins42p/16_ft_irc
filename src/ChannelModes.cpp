@@ -6,7 +6,7 @@
 /*   By: jcummins <jcummins@student.42prague.c      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/04 17:43:14 by jcummins          #+#    #+#             */
-/*   Updated: 2024/12/13 16:35:16 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/13 17:06:57 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,6 @@
 std::string Channel::modeHandler(int client_fd, std::istringstream &iss)
 {
 	std::string mode, input, output;
-	char command;
 	bool toggle = false;
 	iss >> mode;
 
@@ -27,8 +26,7 @@ std::string Channel::modeHandler(int client_fd, std::istringstream &iss)
 		throw std::runtime_error("Mode switch must start with '-' or '+");
 	std::getline(iss, input);
 	colonectomy(input);
-	command = mode[1];
-	std::map<char, ChanModeHandler>::iterator it = modeHandlers.find(command);
+	std::map<char, ChanModeHandler>::iterator it = modeHandlers.find(mode[1]);
 	if (it != modeHandlers.end()) {
 		output = (this->*(it->second))(client_fd, input, toggle);
 	} else {
