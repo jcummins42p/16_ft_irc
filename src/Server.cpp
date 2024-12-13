@@ -6,7 +6,7 @@
 /*   By: pyerima <pyerima@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 14:48:02 by pyerima           #+#    #+#             */
-/*   Updated: 2024/12/13 18:18:49 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/13 19:48:40 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -241,6 +241,8 @@ void Server::processMessage(int client_fd, const std::string& input) {
 
 	//	Removed the if/else forest and use function pointers in a map instead
 	try {
+		if (command.empty())
+			return;
 		if (command != "USER" && command != "NICK")
 			checkRegistration(client_fd);
 		std::map<std::string, ServCommandHandler>::iterator it = commandHandlers.find(command);

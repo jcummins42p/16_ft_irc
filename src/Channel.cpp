@@ -6,7 +6,7 @@
 /*   By: pyerima <pyerima@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/04 17:00:44 by mmakagon          #+#    #+#             */
-/*   Updated: 2024/12/13 18:03:52 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/13 19:43:01 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -116,7 +116,7 @@ void Channel::setUserLimit(const long &newlimit, const Client &admin) {
 	if (newlimit < 1)
 		throw std::runtime_error ("Minimum user limit is 1");
 	if (newlimit > static_cast<long>(SIZE_MAX))
-		throw std::runtime_error ("Maximum user limit exceeded");
+		throw std::runtime_error ("User limit cannot exceed " + intToString(SIZE_MAX));
 	clnts_limit = static_cast<size_t>(newlimit);
 }
 
@@ -130,7 +130,7 @@ void	Channel::addClient(const Client &target, const Client &admin) {
 	if (clients.size() >= clnts_limit)
 		throw std::runtime_error ("The channel is full!");
 	if (clients.find(&target) != clients.end())
-		throw std::runtime_error("Already in the channel!");
+		throw std::runtime_error(target.getNick() + " already in the channel!");
 	if (banned_clients.find(&target) != banned_clients.end())
 		throw std::runtime_error("Banned from the channel!");
 	clients.insert(&target);
@@ -154,7 +154,7 @@ void	Channel::revokeAdmin(const Client &target, const Client &admin) {
 	if (admins.find(&admin) == admins.end())
 		throw std::runtime_error("Admin rights required");
 	if (clients.find(&target) == clients.end())
-		throw std::runtime_error("Not in the channel!");
+		throw std::runtime_error(target.getNick() + " not in the channel!");
 	if (admins.find(&target) == admins.end())
 		throw (std::runtime_error("Target is not admin!"));
 	admins.erase(&target);
@@ -166,7 +166,7 @@ void Channel::kickClient(const Client &target, const Client &admin) {
 	if (admins.find(&admin) == admins.end())
 		throw (std::runtime_error("Admin rights required"));
 	if (clients.find(&target) == clients.end())
-		throw (std::runtime_error("Target is not in channel"));
+		throw (std::runtime_error(target.getNick() + " is not in channel"));
 	if (admins.find(&target) != admins.end())
 		throw (std::runtime_error("Cannot kick admin"));
 	internalMessage(target, getName() + ": You have been kicked by "
@@ -174,26 +174,28 @@ void Channel::kickClient(const Client &target, const Client &admin) {
 	removeClient( target );
 }
 
-void Channel::banClient(const Client &toban, const Client &admin) {
+void Channel::banClient(const Client &target, const Client &admin) {
 	if (clients.find(&admin) == clients.end())
 		throw (std::runtime_error("Not in the channel"));
-	if (clients.find(&toban) != clients.end())
-		kickClient(toban, admin);
-	if (banned_clients.find(&toban) != banned_clients.end())
-		revokeInvite(toban, admin);
-	banned_clients.insert(&toban);  // Add the client to the invited list.
-	internalMessage(toban, name + ": You have been banned by " + admin.getNick());
+	if (clients.find(&target) != clients.end())
+		kickClient(target, admin);
+	if (invited_clients.find(&target) != invited_clients.end())
+		revokeInvite(target, admin);
+	banned_clients.insert(&target);  // Add the client to the invited list.
+	internalMessage(target, name + ": You have been banned by " + admin.getNick());
+	internalMessage(admin, name + ": You banned " + target.getNick());
 }
 
-void	Channel::revokeBan(const Client &unban, const Client &admin) {
+void	Channel::revokeBan(const Client &target, const Client &admin) {
 	if (clients.find(&admin) == clients.end())
 		throw (std::runtime_error("Not in the channel"));
 	if (admins.find(&admin) == admins.end())
 		throw std::runtime_error("Admin rights required");
-	if (banned_clients.find(&unban) == banned_clients.end())
-		throw (std::runtime_error("User is not banned"));
-	internalMessage(unban, name + ": Your ban has been revoked by " + admin.getNick());
-	banned_clients.erase(&unban);
+	if (banned_clients.find(&target) == banned_clients.end())
+		throw (std::runtime_error(target.getNick() + " is not on ban list"));
+	internalMessage(target, name + ": Your ban has been revoked by " + admin.getNick());
+	internalMessage(admin, name + ": You unbanned " + target.getNick());
+	banned_clients.erase(&target);
 }
 
 /* JOIN - LEAVE */
@@ -251,19 +253,20 @@ void Channel::channelMessage(const std::string &message, const Client &sender) {
 
 /* INVITE MANAGEMENT */
 
-void Channel::inviteClient(const Client &invited, const Client &admin) {
+void Channel::inviteClient(const Client &target, const Client &admin) {
 	if (clients.find(&admin) == clients.end())
 		throw (std::runtime_error("Not in the channel"));
 	if (admins.find(&admin) == admins.end())
 		throw (std::runtime_error("Admin rights required"));
-	if (clients.find(&invited) != clients.end())
-		throw (std::runtime_error("User is already in channel"));
-	if (invited_clients.find(&invited) != invited_clients.end())
-		throw (std::runtime_error("User is already invited to channel"));
-	if (banned_clients.find(&invited) != banned_clients.end())
-		revokeBan(invited, admin);
-	invited_clients.insert(&invited);  // Add the client to the invited list.
-	internalMessage(invited, name + ": You have been invited to join by " + admin.getNick());
+	if (clients.find(&target) != clients.end())
+		throw (std::runtime_error(target.getNick() + " is already in channel"));
+	if (invited_clients.find(&target) != invited_clients.end())
+		throw (std::runtime_error(target.getNick() + " is already invited to channel"));
+	if (banned_clients.find(&target) != banned_clients.end())
+		revokeBan(target, admin);
+	invited_clients.insert(&target);  // Add the client to the invited list.
+	internalMessage(target, name + ": You have been invited to join by " + admin.getNick());
+	internalMessage(admin, name + ": You invited " + target.getNick());
 }
 
 void	Channel::revokeInvite(const Client &target, const Client &admin) {
@@ -272,7 +275,7 @@ void	Channel::revokeInvite(const Client &target, const Client &admin) {
 	if (admins.find(&admin) == admins.end())
 		throw std::runtime_error("Admin rights required");
 	if (invited_clients.find(&target) == invited_clients.end())
-		throw (std::runtime_error("User is not invited!"));
+		throw (std::runtime_error(target.getNick() + " is not on invite list!"));
 	invited_clients.erase(&target);
 	internalMessage(target, name + ": Your invite has been revoked by " + admin.getNick());
 }
