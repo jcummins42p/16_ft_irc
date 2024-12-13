@@ -6,7 +6,7 @@
 /*   By: pyerima <pyerima@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/04 14:58:10 by mmakagon          #+#    #+#             */
-/*   Updated: 2024/12/13 13:53:25 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/13 16:34:11 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 
 #include <string>
 #include <set>
+#include <map>
 #include "Client.hpp"
 #include <sys/types.h>
 #include "ft_irc.hpp"
@@ -44,6 +45,17 @@ private:
     std::set<const Client*> banned_clients;
 
 	void internalMessage(const Client &client, const std::string &message) const;
+
+	// Mode function map
+	typedef std::string (Channel::*ChanModeHandler)(int, const std::string &, bool);
+	std::map<char, ChanModeHandler> modeHandlers;
+	// Mode controls
+	std::string handleModeInvite(int client_fd, const std::string &input, bool toggle);
+	std::string handleModeTopic(int client_fd, const std::string &input, bool toggle);
+	std::string handleModeKey(int client_fd, const std::string &input, bool toggle);
+	std::string	handleModeOperator(int client_fd, const std::string &input, bool toggle);
+	std::string handleModeUserLimit(int client_fd, const std::string &input, bool toggle);
+	std::string handleModeSecret(int client_fd, const std::string &input, bool toggle);
 
 public:
     // Constructor / Destructor
@@ -88,13 +100,8 @@ public:
 	// Info
 	bool containsMember(const Client &client ) const ;
 
-	// Mode controls
-	std::string handleModeInvite(int client_fd, const std::string &input, bool toggle);
-	std::string handleModeTopic(int client_fd, const std::string &input, bool toggle);
-	std::string handleModeKey(int client_fd, const std::string &input, bool toggle);
-	void handleModeOperator(int client_fd, const std::string &input, bool toggle);
-	std::string handleModeUserLimit(int client_fd, const std::string &input, bool toggle);
-	std::string handleModeSecret(bool toggle);
+	//	Mode command selector
+	std::string modeHandler(int client_fd, std::istringstream &iss);
 };
 
 #endif

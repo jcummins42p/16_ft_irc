@@ -6,7 +6,7 @@
 /*   By: jcummins <jcummins@student.42prague.com>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/06 15:21:19 by jcummins          #+#    #+#             */
-/*   Updated: 2024/12/12 23:23:06 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/13 15:57:00 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 void Server::handleNickCommand(int client_fd, std::istringstream& iss)
 {
 	std::string in_nick;
-	iss >> in_nick; // Read the nickname from the stream
+	iss >> in_nick;
 	try {
 		clients[client_fd]->setNick(in_nick);
 		log.info("Client " + intToString(client_fd)
@@ -34,7 +34,7 @@ void Server::handleNickCommand(int client_fd, std::istringstream& iss)
 void Server::handleUserCommand(int client_fd, std::istringstream& iss)
 {
 	std::string in_username;
-	iss >> in_username; // Read the username from the stream
+	iss >> in_username;
 	try {
 		clients[client_fd]->setUser(in_username);
 		log.info("Client " + intToString(client_fd)
@@ -55,12 +55,8 @@ void Server::handleJoinCommand(int client_fd, std::istringstream& iss) {
 	std::string password;
 	iss >> channelName >> password;
 
-	// Look for the channel by name
-	// Now that there is exception thrown in getChannel, we have problems
-	// Maybe move check to the getChannelRef instead
 	Channel* channel = getChannel(channelName);
-	// If the channel doesn't exist, create it
-	if (channel == NULL) {
+	if (channel == NULL) {	// If the channel doesn't exist, create it
 		try { channel = createChannel(client_fd, channelName, password); }
 		catch ( std::invalid_argument &e ) {
 			log.error("Join: " + getClientRef(client_fd).getNick()
@@ -69,8 +65,7 @@ void Server::handleJoinCommand(int client_fd, std::istringstream& iss) {
 			sendString(client_fd, e.what());
 		}
 	}
-	else {
-		// Otherwise, join the existing channel
+	else {	// Otherwise, join the existing channel
 		try {
 			channel->joinChannel(*clients[client_fd], password);
 			log.info(getClientRef(client_fd).getNick()
@@ -93,8 +88,8 @@ void Server::handlePartCommand(int client_fd, std::istringstream &iss)
 
 	try {
 		Channel &channel = getChannelRef(channel_name);
-		//if (!getClientRef(client_fd).isInChannel(channel))
-			//throw (std::runtime_error("Not in channel " + channel_name));
+		if (!getClientRef(client_fd).isInChannel(channel))
+			throw (std::runtime_error("Not in channel " + channel_name));
 		channel.channelMessage(channel_name + ": " + clients[client_fd]->getNick()
 				+ " has left channel", *clients[client_fd]);
 		channel.removeClient(*clients[client_fd]);
@@ -114,23 +109,11 @@ bool Server::sendMsgToChannel(int client_fd, const std::string &target, const st
 	if (target[0] != '#' && target[0] != '&')
 		return (1);
 	// Look for the channel by name
-	Channel* channel = getChannel(target);
-	//if (!getClientRef(client_fd).isInChannel(channel))
-		//throw (std::runtime_error("Not in channel " + target));
-	std::string formattedMsg = channel->getName()
+	Channel &channel = getChannelRef(target);
+	std::string formattedMsg = channel.getName()
 		+ " message from " + clients[client_fd]->getNick() + ": " + msg;
-	channel->channelMessage(formattedMsg, *clients[client_fd]);
+	channel.channelMessage(formattedMsg, *clients[client_fd]);
 	return (0);
-}
-
-static void colonectomy( std::string &msg ) {
-	if (!msg.empty()) {
-		size_t colpos = msg.find(":", 0);
-		if (colpos != std::string::npos && colpos + 1 < msg.size())
-			msg = msg.substr(colpos + 1);
-		else
-			throw std::runtime_error("Message must begin with :");
-	}
 }
 
 void Server::handlePrivmsgCommand(int client_fd, std::istringstream &iss) {
@@ -155,15 +138,14 @@ void Server::handlePrivmsgCommand(int client_fd, std::istringstream &iss) {
 	}
 }
 
-void Server::handleQuitCommand(int client_fd)
-{
+void Server::handleQuitCommand(int client_fd, std::istringstream &iss) {
+	(void) iss;
 	std::cout << "Client " << client_fd << " disconnected." << std::endl;
 	close(client_fd); // Close the client's socket
 	clients.erase(client_fd); // Remove client from the map
 }
 
-void Server::handleTopicCommand(int client_fd, std::istringstream &iss)
-{
+void Server::handleTopicCommand(int client_fd, std::istringstream &iss) {
 	std::string channel_name, new_topic;
 	iss >> channel_name; // read channel name
 	std::getline(iss, new_topic); // read the new topic
@@ -180,38 +162,13 @@ void Server::handleTopicCommand(int client_fd, std::istringstream &iss)
 	}
 }
 
-void Server::handleModeCommand(int client_fd, std::istringstream &iss)
-{
-	std::string channel_name, mode, input, message;
-	bool toggle = false;
-	iss >> channel_name >> mode; // read channel name and mode
+void Server::handleModeCommand(int client_fd, std::istringstream &iss) {
+	std::string channel_name, mode, message;
+	iss >> channel_name; // read channel name and mode
 
 	try {
 		Channel &channel = getChannelRef(channel_name);
-		if (mode.size() != 2)
-			throw std::runtime_error("Invalid mode switch " + mode);
-		if (mode[0] == '+')
-			toggle = true;
-		else if (mode[0] != '-')
-			throw std::runtime_error("Mode switch must start with '-' or '+");
-		std::getline(iss, input);
-		colonectomy(input);
-		if (mode[1] == 'i')
-			message = channel.handleModeInvite(client_fd, input, toggle);
-		else if (mode[1] == 't')
-			message = channel.handleModeTopic(client_fd, input, toggle);
-		else if (mode[1] == 'k')
-			message = channel.handleModeKey(client_fd, input, toggle);
-		else if (mode[1] == 'o') {
-			channel.handleModeOperator(client_fd, input, toggle);
-			return ;
-		}
-		else if (mode[1] == 'l')
-			message = channel.handleModeUserLimit(client_fd, input, toggle);
-		else if (mode[1] == 's')
-			message = channel.handleModeSecret(toggle);
-		else
-			throw std::runtime_error("Invalid mode '" + mode + "'");
+		message = channel.modeHandler(client_fd, iss);
 		log.info("Mode: " + message);
 		sendString(client_fd, message);
 	}
@@ -266,7 +223,8 @@ void Server::handleInviteCommand(int client_fd, std::istringstream &iss) {
 	}
 }
 
-void Server::handleListCommand(int client_fd) {
+void Server::handleListCommand(int client_fd, std::istringstream &iss) {
+	(void) iss;
 	try
 	{
 		if (channels.empty())
@@ -284,7 +242,8 @@ void Server::handleListCommand(int client_fd) {
 	}
 }
 
-void Server::handleDieCommand(int client_fd) {
+void Server::handleDieCommand(int client_fd, std::istringstream &iss) {
+	(void) iss;
 	static int timescalled = 0;
 	broadcastMessage("Server shutting down, please close your session");
 	// broadcast message isn't working, it seems. Perhaps it needs more cycles

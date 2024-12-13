@@ -6,7 +6,7 @@
 /*   By: pyerima <pyerima@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/04 17:00:44 by mmakagon          #+#    #+#             */
-/*   Updated: 2024/12/13 14:02:29 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/13 16:17:22 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,13 +49,19 @@ Channel::Channel( Server &server, std::string in_name, const Client& creator, co
 	name = in_name;
 	if (server.getChannel(in_name))
 		throw std::invalid_argument(name + " already in use ");
-
 	if (password.empty())
 		locked = false;
 	else
 		hashed_pass = hashSimple(password);  // Set the hashed password for the channel.
 	clients.insert(&creator);		   // Add the creator as the first client.
 	admins.insert(&creator);			// Set the creator as the initial admin.
+	//	Set mode handler function map
+	modeHandlers['i'] == &Channel::handleModeInvite;
+	modeHandlers['t'] == &Channel::handleModeTopic;
+	modeHandlers['k'] == &Channel::handleModeKey;
+	modeHandlers['o'] == &Channel::handleModeOperator;
+	modeHandlers['l'] == &Channel::handleModeUserLimit;
+	modeHandlers['s'] == &Channel::handleModeSecret;
 }
 
 Channel::~Channel(void) {}
@@ -176,7 +182,7 @@ void Channel::banClient(const Client &toban, const Client &admin) {
 	if (banned_clients.find(&toban) != banned_clients.end())
 		revokeInvite(toban, admin);
 	banned_clients.insert(&toban);  // Add the client to the invited list.
-	internalMessage(toban, "You have been banned from " + name);
+	internalMessage(toban, name + ": You have been banned by " + admin.getNick());
 }
 
 void	Channel::revokeBan(const Client &unban, const Client &admin) {
@@ -185,7 +191,8 @@ void	Channel::revokeBan(const Client &unban, const Client &admin) {
 	if (admins.find(&admin) == admins.end())
 		throw std::runtime_error("Admin rights required");
 	if (banned_clients.find(&unban) == banned_clients.end())
-		throw (std::runtime_error("User is no longer banned"));
+		throw (std::runtime_error("User is not banned"));
+	internalMessage(unban, name + ": Your ban has been revoked by " + admin.getNick());
 	banned_clients.erase(&unban);
 }
 
@@ -253,7 +260,7 @@ void Channel::inviteClient(const Client &invited, const Client &admin) {
 	if (banned_clients.find(&invited) != banned_clients.end())
 		revokeBan(invited, admin);
 	invited_clients.insert(&invited);  // Add the client to the invited list.
-	internalMessage(invited, "You have been invited to join " + name);
+	internalMessage(invited, name + ": You have been invited to join by " + admin.getNick());
 }
 
 void	Channel::revokeInvite(const Client &target, const Client &admin) {
@@ -264,6 +271,7 @@ void	Channel::revokeInvite(const Client &target, const Client &admin) {
 	if (invited_clients.find(&target) == invited_clients.end())
 		throw (std::runtime_error("User is not invited!"));
 	invited_clients.erase(&target);
+	internalMessage(target, name + ": Your invite has been revoked by " + admin.getNick());
 }
 
 /* INFO */

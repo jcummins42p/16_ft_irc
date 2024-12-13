@@ -6,7 +6,7 @@
 /*   By: pyerima <pyerima@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 14:48:02 by pyerima           #+#    #+#             */
-/*   Updated: 2024/12/13 14:03:43 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/13 16:24:43 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,6 +38,21 @@ Server::Server(int port, const std::string& in_pass) :
 
 	bind(server_fd, (struct sockaddr *)&server_addr, sizeof(server_addr));
 	listen(server_fd, 5);
+
+	//	Initializing command map
+	commandHandlers["DIE"] = &Server::handleDieCommand;
+	commandHandlers["LIST"] = &Server::handleListCommand;
+	commandHandlers["INVITE"] = &Server::handleInviteCommand;
+	commandHandlers["BAN"] = &Server::handleBanCommand;
+	commandHandlers["KICK"] = &Server::handleKickCommand;
+	commandHandlers["MODE"] = &Server::handleModeCommand;
+	commandHandlers["TOPIC"] = &Server::handleTopicCommand;
+	commandHandlers["QUIT"] = &Server::handleQuitCommand;
+	commandHandlers["PRIVMSG"] = &Server::handlePrivmsgCommand;
+	commandHandlers["PART"] = &Server::handlePartCommand;
+	commandHandlers["JOIN"] = &Server::handleJoinCommand;
+	commandHandlers["USER"] = &Server::handleUserCommand;
+	commandHandlers["NICK"] = &Server::handleNickCommand;
 
 	// Log file now opened in Logger class constructor
 	log.info("Server initialized on port " + intToString(port));
@@ -222,36 +237,10 @@ void Server::processMessage(int client_fd, const std::string& message) {
 	std::string command;
 	iss >> command;
 
-	if (command == "NICK") {
-		handleNickCommand(client_fd, iss);
-	} else if (command == "USER") {
-		handleUserCommand(client_fd, iss);
-	} else if (!getClientRef(client_fd).isRegistered()) {
-		promptRegistration(client_fd);
-	} else if (command == "JOIN") {
-		handleJoinCommand(client_fd, iss);
-	} else if (command == "PART") {
-		handlePartCommand(client_fd, iss);
-	} else if (command == "PRIVMSG") {
-		handlePrivmsgCommand(client_fd, iss);
-	} else if (command == "QUIT") {
-		handleQuitCommand(client_fd);
-	} else if (command == "PING") {
-		send(client_fd, "PONG :ping\n", 12, 0);
-	} else if (command == "TOPIC") {
-		handleTopicCommand(client_fd, iss);
-	} else if (command == "MODE") {
-		handleModeCommand(client_fd, iss);
-	} else if (command == "KICK") {
-		handleKickCommand(client_fd, iss);
-	} else if (command == "BAN") {
-		handleBanCommand(client_fd, iss);
-	} else if (command == "INVITE") {
-		handleInviteCommand(client_fd, iss);
-	} else if (command == "LIST") {
-		handleListCommand(client_fd);
-	} else if (command == "DIE") {
-		handleDieCommand(client_fd);
+	//	Removed the if/else forest and use function pointers in a map instead
+	std::map<std::string, ServCommandHandler>::iterator it = commandHandlers.find(command);
+	if (it != commandHandlers.end()) {
+		(this->*(it->second))(client_fd, iss);
 	} else {
 		log.info("Unhandled message from fd " + intToString(client_fd) + ": " + message);
 	}

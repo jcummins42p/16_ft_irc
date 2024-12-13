@@ -6,7 +6,7 @@
 /*   By: pyerima <pyerima@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 14:48:02 by pyerima           #+#    #+#             */
-/*   Updated: 2024/12/12 23:14:25 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/13 15:07:05 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,6 +61,9 @@ private:
 
 	Channel *createChannel(int client_fd, const std::string &chName, const std::string &passwd);
 
+	// Command handler type definition and map declaration
+	typedef void (Server::*ServCommandHandler)(int, std::istringstream &);
+	std::map<std::string, ServCommandHandler> commandHandlers;
     // Command handlers
     void handleNickCommand(int client_fd, std::istringstream &iss);
     void handleUserCommand(int client_fd, std::istringstream &iss);
@@ -68,14 +71,14 @@ private:
     void handlePartCommand(int client_fd, std::istringstream &iss);
 	bool sendMsgToChannel(int client_fd, const std::string &target, const std::string &msg);
     void handlePrivmsgCommand(int client_fd, std::istringstream &iss);
-    void handleQuitCommand(int client_fd);
+    void handleQuitCommand(int client_fd, std::istringstream &iss);
     void handleTopicCommand(int client_fd, std::istringstream &iss);
     void handleModeCommand(int client_fd, std::istringstream &iss);
     void handleKickCommand(int client_fd, std::istringstream &iss);
     void handleBanCommand(int client_fd, std::istringstream &iss);
     void handleInviteCommand(int client_fd, std::istringstream &iss);
-	void handleListCommand(int client_fd);
-	void handleDieCommand(int client_fd);
+	void handleListCommand(int client_fd, std::istringstream &iss);
+	void handleDieCommand(int client_fd, std::istringstream &iss);
 
 	Logger log; // NOT const
 
