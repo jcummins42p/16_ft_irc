@@ -6,7 +6,7 @@
 /*   By: pyerima <pyerima@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 14:48:02 by pyerima           #+#    #+#             */
-/*   Updated: 2024/12/12 23:18:09 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/13 14:03:43 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -259,7 +259,8 @@ void Server::processMessage(int client_fd, const std::string& message) {
 
 Channel *Server::createChannel(int client_fd, const std::string &chName, const std::string &passwd) {
 	Channel *output = new Channel(*this, chName, *clients[client_fd], passwd);
-	channels[chName] = output;  // Add the new channel to the map
+
+	channels[output->getName()] = output;  // Add the new channel to the map
 	sendString(client_fd, "Made new channel '" + output->getName() + "' successfully.");
 	log.info( getClientRef(client_fd).getNick() + " (fd " + intToString(client_fd)
 			+ ") created channel " + output->getName());

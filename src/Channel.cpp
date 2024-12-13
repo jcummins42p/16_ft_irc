@@ -6,7 +6,7 @@
 /*   By: pyerima <pyerima@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/04 17:00:44 by mmakagon          #+#    #+#             */
-/*   Updated: 2024/12/12 22:53:23 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/13 14:02:29 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,27 +22,19 @@ const static std::string allowedchars = "`|^_-{}[]\\!@#$%&*()+=.";
 
 //	This is a static class function to check if a server name is valid to search for
 void Channel::validateName(const std::string &name ) {
+	if (name.empty())
+		throw std::invalid_argument("Channel name cannot be empty");
 	if (name[0] != '#' && name[0] != '&')
 		throw std::invalid_argument("Static Channel name must begin with '#' or '&'.");
+	if (name.size() == 1)
+		throw std::invalid_argument("Channel name cannot be empty");
 	for (unsigned long i = 0; i < name.size(); i++) {
 		if (!isalnum(name[i]) && (allowedchars.find(name[i]) == std::string::npos))
 			throw std::invalid_argument("User name must not contain '" + std::string(1, name[i]) + "'");
 	}
 }
 
-//	This is used during construction to check that the name is legal and available
-static void validateNameHelper(const Server &server, const std::string &name ) {
-	if (name[0] != '#' && name[0] != '&')
-		throw std::invalid_argument("Helper Channel name must begin with '#' or '&'.");
-	for (unsigned long i = 0; i < name.size(); i++) {
-		if (!isalnum(name[i]) && (allowedchars.find(name[i]) == std::string::npos))
-			throw std::invalid_argument("User name must not contain '" + std::string(1, name[i]) + "'");
-	}
-	if (server.getChannel(name))
-		throw std::invalid_argument(name + " already in use ");
-}
-
-Channel::Channel( Server &server, const std::string& in_name, const Client& creator, const std::string& password) :
+Channel::Channel( Server &server, std::string in_name, const Client& creator, const std::string& password) :
 	server(server),
 	clnts_limit(MAX_CLIENTS),
 	invite_only(false),
@@ -52,10 +44,11 @@ Channel::Channel( Server &server, const std::string& in_name, const Client& crea
 	secret(false)
 {
 	if (in_name.empty())
-		name = "#Default";
-	else
-		name = in_name;
-	validateNameHelper(server, name);
+		in_name = "#Default";
+	validateName(in_name);
+	name = in_name;
+	if (server.getChannel(in_name))
+		throw std::invalid_argument(name + " already in use ");
 
 	if (password.empty())
 		locked = false;

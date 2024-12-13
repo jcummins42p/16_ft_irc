@@ -6,7 +6,7 @@
 /*   By: pyerima <pyerima@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/04 14:58:10 by mmakagon          #+#    #+#             */
-/*   Updated: 2024/12/12 22:11:09 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/13 13:53:25 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,7 +47,7 @@ private:
 
 public:
     // Constructor / Destructor
-    Channel(Server &server, const std::string &in_name, const Client &creator, const std::string &password);
+    Channel(Server &server, std::string in_name, const Client &creator, const std::string &password);
     ~Channel();
 
 	static void validateName( const std::string &name );
