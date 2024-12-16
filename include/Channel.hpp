@@ -6,7 +6,7 @@
 /*   By: pyerima <pyerima@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/04 14:58:10 by mmakagon          #+#    #+#             */
-/*   Updated: 2024/12/16 19:13:09 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/16 19:22:02 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,8 +39,9 @@ private:
 	bool	locked;
 	bool	secret;
 	//	CLIENT LISTS
-    std::set<const Client*> clients;
+	const Client *owner;
     std::set<const Client*> admins;
+    std::set<const Client*> clients;
     std::set<const Client*> invited_clients; // Declare the invited clients.
     std::set<const Client*> banned_clients;
 

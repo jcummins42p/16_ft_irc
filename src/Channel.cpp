@@ -6,7 +6,7 @@
 /*   By: pyerima <pyerima@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/04 17:00:44 by mmakagon          #+#    #+#             */
-/*   Updated: 2024/12/16 19:16:55 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/16 19:39:30 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,6 +48,7 @@ Channel::Channel( Server &server, std::string in_name, const Client& creator, co
 		locked = false;
 	else
 		hashed_pass = hashSimple(password);  // Set the hashed password for the channel.
+	owner = &creator;			//	Add creator as channel owner.
 	clients.insert(&creator);		   // Add the creator as the first client.
 	admins.insert(&creator);			// Set the creator as the initial admin.
 	//	Set mode handler function map
@@ -148,7 +149,7 @@ void Channel::kickClient(const Client &target, const Client &admin) {
 	checkRights(admin, ADMIN);
 	if (clients.find(&target) == clients.end())
 		throw (std::runtime_error(target.getNick() + " is not in channel"));
-	if (admins.find(&target) != admins.end())
+	if (owner != &admin && (admins.find(&target) != admins.end()))
 		throw (std::runtime_error("Cannot kick admin"));
 	internalMessage(target, getName() + ": You have been kicked by "
 							+ admin.getNick() + ", bye.");
@@ -210,6 +211,10 @@ void Channel::removeClient(const Client &target) {
 		admins.insert(*clients.begin());  // Assign the first client as the new admin
 		internalMessage(**clients.begin(), getName() + ": You are now channel admin");
 	}
+	if (owner == &target && !admins.empty()) { // if owner leaves, appoint another admin
+		owner = *admins.begin();
+		internalMessage(*owner, getName() + ": You are now channel owner");
+	}
 	// If there are no clients left, you can clean up or close the channel.
 	if (clients.empty()) {
 		throw std::exception();
@@ -219,7 +224,7 @@ void Channel::removeClient(const Client &target) {
 /* GROUP MESSAGES */
 
 void Channel::channelMessage(const std::string &message, const Client &sender) {
-	checkRights(admin, MEMBER);
+	checkRights(sender, MEMBER);
 	for (std::set<const Client*>::iterator it = clients.begin(); it != clients.end(); ++it) {
 		// Don't send the message back to the sender
 		if (*it != &sender)
