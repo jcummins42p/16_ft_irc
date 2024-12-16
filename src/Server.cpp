@@ -6,7 +6,7 @@
 /*   By: pyerima <pyerima@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 14:48:02 by pyerima           #+#    #+#             */
-/*   Updated: 2024/12/13 19:48:40 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/16 17:03:53 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -179,12 +179,19 @@ void Server::handleDisconnect(int client_fd, int bytes_received) {
 //	recv receives a message from a socket
 void Server::handleClient(int client_fd) {
 	char buffer[BUFFER_SIZE];
+	for (unsigned int i = 0; i < BUFFER_SIZE; i++)
+		buffer[i] = '\0';
 	ssize_t bytes_received = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
 
 	if (bytes_received <= 0)
 		handleDisconnect(client_fd, bytes_received);
 
-	buffer[bytes_received] = '\0';
+	if (buffer[bytes_received - 1] != '\n') {
+		buffer[bytes_received] = '\n';
+		buffer[bytes_received] = '\0';
+	}
+	else
+		buffer[bytes_received] = '\0';
 	inBuffs[client_fd] += buffer;
 
 	size_t pos;
