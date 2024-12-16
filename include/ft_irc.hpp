@@ -6,7 +6,7 @@
 /*   By: pyerima <pyerima@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/04 13:00:32 by pyerima           #+#    #+#             */
-/*   Updated: 2024/12/06 10:08:49 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/16 19:10:38 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,13 @@ class Client;
 
 # define MAX_CLIENTS 100
 # define BUFFER_SIZE 512
+
+typedef enum e_privlevel {
+	NON,
+	MEMBER,
+	ADMIN,
+	OWNER
+} 			t_privlevel;
 
 # include "utils.hpp"
 # include "Channel.hpp"

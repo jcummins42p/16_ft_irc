@@ -6,7 +6,7 @@
 /*   By: pyerima <pyerima@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/04 14:58:10 by mmakagon          #+#    #+#             */
-/*   Updated: 2024/12/13 17:09:49 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/16 19:13:09 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,6 +45,7 @@ private:
     std::set<const Client*> banned_clients;
 
 	void internalMessage(const Client &client, const std::string &message) const;
+	void checkRights(const Client &executor, t_privlevel level);
 
 	// Mode function map
 	typedef std::string (Channel::*ChanModeHandler)(int, const std::string &, bool);
