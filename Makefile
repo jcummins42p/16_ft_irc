@@ -6,7 +6,7 @@
 #    By: mmakagon <mmakagon@student.42.com>         +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/04 14:17:14 by jcummins          #+#    #+#              #
-#    Updated: 2024/12/10 20:46:50 by jcummins         ###   ########.fr        #
+#    Updated: 2024/12/16 18:44:28 by jcummins         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -29,7 +29,8 @@ MAKE = ./Makefile
 
 CXX = c++
 CXXFLAGS = -Wall -Wextra -Werror -Wunused-result -pedantic -std=c++98 \
-		   -g -fsanitize=address -Iinclude
+			-g  -Iinclude
+			#-fsanitize=address
 
 all: $(NAME)
 

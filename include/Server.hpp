@@ -6,7 +6,7 @@
 /*   By: pyerima <pyerima@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 14:48:02 by pyerima           #+#    #+#             */
-/*   Updated: 2024/12/13 18:18:06 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/16 18:25:01 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,7 +59,7 @@ private:
     void processMessage(int client_fd, const std::string &message);
 	void broadcastMessage(const std::string &message);
 
-	Channel *createChannel(int client_fd, const std::string &chName, const std::string &passwd);
+	Channel *createChannel(int client_fd, std::string chName, const std::string &passwd);
 
 	// Command handler type definition and map declaration
 	typedef void (Server::*ServCommandHandler)(int, std::istringstream &);

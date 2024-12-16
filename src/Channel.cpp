@@ -6,7 +6,7 @@
 /*   By: pyerima <pyerima@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/04 17:00:44 by mmakagon          #+#    #+#             */
-/*   Updated: 2024/12/13 19:43:01 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/16 18:36:22 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@
 
 
 const static std::string allowedchars = "`|^_-{}[]\\!@#$%&*()+=.";
+const static std::string allowedprefix = "#&!+";
 
 /* CONSTRUCT - DESTRUCT */
 
@@ -24,11 +25,11 @@ const static std::string allowedchars = "`|^_-{}[]\\!@#$%&*()+=.";
 void Channel::validateName(const std::string &name ) {
 	if (name.empty())
 		throw std::invalid_argument("Channel name cannot be empty");
-	if (name[0] != '#' && name[0] != '&')
-		throw std::invalid_argument("Static Channel name must begin with '#' or '&'.");
+	if (allowedprefix.find(name[0]) == std::string::npos)
+		throw std::invalid_argument("Channel name must begin with: # & ! +");
 	if (name.size() == 1)
 		throw std::invalid_argument("Channel name cannot be empty");
-	for (unsigned long i = 0; i < name.size(); i++) {
+	for (unsigned long i = 1; i < name.size(); i++) {
 		if (!isalnum(name[i]) && (allowedchars.find(name[i]) == std::string::npos))
 			throw std::invalid_argument("User name must not contain '" + std::string(1, name[i]) + "'");
 	}
@@ -36,6 +37,7 @@ void Channel::validateName(const std::string &name ) {
 
 Channel::Channel( Server &server, std::string in_name, const Client& creator, const std::string& password) :
 	server(server),
+	name(in_name),
 	clnts_limit(MAX_CLIENTS),
 	invite_only(false),
 	topic_admins_only(false),
@@ -43,12 +45,6 @@ Channel::Channel( Server &server, std::string in_name, const Client& creator, co
 	locked(true),
 	secret(false)
 {
-	if (in_name.empty())
-		in_name = "#Default";
-	validateName(in_name);
-	name = in_name;
-	if (server.getChannel(in_name))
-		throw std::invalid_argument(name + " already in use ");
 	if (password.empty())
 		locked = false;
 	else

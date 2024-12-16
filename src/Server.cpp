@@ -6,7 +6,7 @@
 /*   By: pyerima <pyerima@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 14:48:02 by pyerima           #+#    #+#             */
-/*   Updated: 2024/12/16 17:03:53 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/16 18:25:49 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -264,7 +264,12 @@ void Server::processMessage(int client_fd, const std::string& input) {
 	}
 }
 
-Channel *Server::createChannel(int client_fd, const std::string &chName, const std::string &passwd) {
+Channel *Server::createChannel(int client_fd, std::string chName, const std::string &passwd) {
+	if (chName.empty())
+		chName = "#Default";
+	if (getChannel(chName))
+		throw std::invalid_argument(chName + " already in use ");
+	Channel::validateName(chName);
 	Channel *output = new Channel(*this, chName, *clients[client_fd], passwd);
 
 	channels[output->getName()] = output;  // Add the new channel to the map
