@@ -6,7 +6,7 @@
 /*   By: pyerima <pyerima@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/04 17:00:44 by mmakagon          #+#    #+#             */
-/*   Updated: 2024/12/17 21:07:01 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/17 21:35:49 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,11 +79,11 @@ bool Channel::isSecret(void) const { return (secret); }
 
 void	Channel::checkRights(const Client &executor, e_privlevel level) {
 	if (level >= MEMBER && clients.find(&executor) == clients.end())
-		throw (std::runtime_error("Not in the channel"));
+		throw (std::runtime_error(getName() + ": Not in the channel"));
 	else if (level >= ADMIN && admins.find(&executor) == admins.end())
-		throw std::runtime_error ("Admin rights required");
+		throw std::runtime_error (getName() + ": Admin rights required");
 	else if (level == OWNER && &executor != owner)
-		throw std::runtime_error ("Channel owner rights required");
+		throw std::runtime_error (getName() + ": Channel owner rights required");
 }
 
 void	Channel::setTopic(const std::string &in_topic, const Client &admin) {

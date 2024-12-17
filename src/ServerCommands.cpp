@@ -6,7 +6,7 @@
 /*   By: jcummins <jcummins@student.42prague.com>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/06 15:21:19 by jcummins          #+#    #+#             */
-/*   Updated: 2024/12/17 21:18:20 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/17 21:23:08 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -169,8 +169,10 @@ void Server::handleModeCommand(int client_fd, std::istringstream &iss) {
 	try {
 		Channel &channel = getChannelRef(channel_name);
 		message = channel.modeHandler(client_fd, iss);
-		log.info("Mode: " + message);
-		sendString(client_fd, message);
+		if (message.size()) {
+			log.info("Mode: " + message);
+			sendString(client_fd, message);
+		}
 	}
 	catch (std::exception &e) {
 		log.error("Mode: " + std::string(e.what()));
