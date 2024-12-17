@@ -6,7 +6,7 @@
 /*   By: mmakagon <mmakagon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 14:48:02 by pyerima           #+#    #+#             */
-/*   Updated: 2024/12/06 10:01:07 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/17 16:44:08 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,5 +22,6 @@ int main(int argc, char* argv[]) {
 	Server *server = Server::getInstance(port, argv[2]);
 	server->run();
 
+	delete server;
 	return 0;
 }

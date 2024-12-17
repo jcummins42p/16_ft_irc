@@ -6,7 +6,7 @@
 /*   By: jcummins <jcummins@student.42prague.c      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/04 17:43:14 by jcummins          #+#    #+#             */
-/*   Updated: 2024/12/13 17:06:57 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/17 15:35:23 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@ std::string Channel::modeHandler(int client_fd, std::istringstream &iss)
 	bool toggle = false;
 	iss >> mode;
 
+	checkRights(server.getClientRef(client_fd), ADMIN);
 	if (mode.size() != 2)
 		throw std::runtime_error("Invalid mode switch '" + mode + "'");
 	if (mode[0] == '+')

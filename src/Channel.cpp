@@ -6,7 +6,7 @@
 /*   By: pyerima <pyerima@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/04 17:00:44 by mmakagon          #+#    #+#             */
-/*   Updated: 2024/12/16 19:39:30 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/17 21:07:01 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,7 @@ void Channel::validateName(const std::string &name ) {
 	}
 }
 
-Channel::Channel( Server &server, std::string in_name, const Client& creator, const std::string& password) :
+Channel::Channel(Server &server, std::string in_name, const Client& creator, const std::string& password) :
 	server(server),
 	name(in_name),
 	clnts_limit(MAX_CLIENTS),
@@ -77,18 +77,22 @@ bool Channel::isSecret(void) const { return (secret); }
 
 /* SETTERS */
 
-void	Channel::checkRights(const Client &executor, t_privlevel level) {
+void	Channel::checkRights(const Client &executor, e_privlevel level) {
 	if (level >= MEMBER && clients.find(&executor) == clients.end())
 		throw (std::runtime_error("Not in the channel"));
-	else if (level >= ADMIN && topic_admins_only && admins.find(&executor) == admins.end())
+	else if (level >= ADMIN && admins.find(&executor) == admins.end())
 		throw std::runtime_error ("Admin rights required");
+	else if (level == OWNER && &executor != owner)
+		throw std::runtime_error ("Channel owner rights required");
 }
 
 void	Channel::setTopic(const std::string &in_topic, const Client &admin) {
-	checkRights(admin, ADMIN);
-	if (in_topic.empty()) {
+	if (topic_admins_only)
+		checkRights(admin, ADMIN);
+	else
+		checkRights(admin, MEMBER);
+	if (in_topic.empty())
 		throw std::runtime_error ("Can't set an empty topic");
-	}
 	topic = in_topic;
 	topic_set = true;
 	channelMessage(getName() + " topic changed by "
@@ -116,17 +120,6 @@ void Channel::setUserLimit(const long &newlimit, const Client &admin) {
 
 /* ADMIN FUNCTIONS */
 
-void	Channel::addClient(const Client &target, const Client &admin) {
-	checkRights(admin, ADMIN);
-	if (clients.size() >= clnts_limit)
-		throw std::runtime_error ("The channel is full!");
-	if (clients.find(&target) != clients.end())
-		throw std::runtime_error(target.getNick() + " already in the channel!");
-	if (banned_clients.find(&target) != banned_clients.end())
-		throw std::runtime_error("Banned from the channel!");
-	clients.insert(&target);
-}
-
 void	Channel::addAdmin(const Client &target, const Client &admin) {
 	checkRights(admin, ADMIN);
 	if (admins.find(&target) != admins.end())
@@ -134,6 +127,7 @@ void	Channel::addAdmin(const Client &target, const Client &admin) {
 	if (clients.find(&target) == clients.end())
 		throw std::runtime_error("Not in the channel!");
 	admins.insert(&target);
+	internalMessage(target, name + ": You have been granted admin by " + admin.getNick());
 }
 
 void	Channel::revokeAdmin(const Client &target, const Client &admin) {
@@ -143,6 +137,7 @@ void	Channel::revokeAdmin(const Client &target, const Client &admin) {
 	if (admins.find(&target) == admins.end())
 		throw (std::runtime_error("Target is not admin!"));
 	admins.erase(&target);
+	internalMessage(target, name + ": Your admin rights were revoked by " + admin.getNick());
 }
 
 void Channel::kickClient(const Client &target, const Client &admin) {

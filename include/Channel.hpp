@@ -6,7 +6,7 @@
 /*   By: pyerima <pyerima@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/04 14:58:10 by mmakagon          #+#    #+#             */
-/*   Updated: 2024/12/16 19:22:02 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/17 15:00:28 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,7 +46,10 @@ private:
     std::set<const Client*> banned_clients;
 
 	void internalMessage(const Client &client, const std::string &message) const;
-	void checkRights(const Client &executor, t_privlevel level);
+
+	//	Privilege checking enum and function
+	enum e_privlevel { NON, MEMBER, ADMIN, OWNER };
+	void checkRights(const Client &executor, e_privlevel level);
 
 	// Mode function map
 	typedef std::string (Channel::*ChanModeHandler)(int, const std::string &, bool);
@@ -104,6 +107,7 @@ public:
 
 	//	Mode command selector
 	std::string modeHandler(int client_fd, std::istringstream &iss);
+
 };
 
 #endif

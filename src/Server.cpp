@@ -6,7 +6,7 @@
 /*   By: pyerima <pyerima@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 14:48:02 by pyerima           #+#    #+#             */
-/*   Updated: 2024/12/16 18:25:49 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/17 15:29:41 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,8 +77,11 @@ void Server::run() {
 	fds[0].fd = server_fd;
 	fds[0].events = POLLIN;
 
-	for (int i = 1; i <= MAX_CLIENTS; i++)
+	for (int i = 1; i <= MAX_CLIENTS; i++) {
 		fds[i].fd = -1;
+		fds[i].events = POLLIN;
+		fds[i].revents = 0;
+	}
 	log.info("Server is running. Waiting for connections...");
 	while (_running) { // waits for results on the monitored file descriptors
 		int ret = poll(fds, MAX_CLIENTS + 1, -1);

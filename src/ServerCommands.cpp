@@ -6,7 +6,7 @@
 /*   By: jcummins <jcummins@student.42prague.com>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/06 15:21:19 by jcummins          #+#    #+#             */
-/*   Updated: 2024/12/13 18:45:53 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/17 21:18:20 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -100,6 +100,7 @@ void Server::handlePartCommand(int client_fd, std::istringstream &iss)
 	catch (std::exception &e) {
 		log.error("Closing empty channel " + channel_name);
 		sendString(client_fd, "Closing empty channel " + channel_name);
+		delete getChannel(channel_name);
 		channels.erase(channel_name);
 	}
 }
