@@ -6,20 +6,22 @@
 /*   By: jcummins <jcummins@student.42prague.c      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/04 17:43:14 by jcummins          #+#    #+#             */
-/*   Updated: 2024/12/13 15:54:28 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/18 18:14:23 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "utils.hpp"
 
-void colonectomy( std::string &msg ) {
+std::string colonectomy( std::string &msg ) {
 	if (!msg.empty()) {
 		size_t colpos = msg.find(":", 0);
 		if (colpos != std::string::npos && colpos + 1 < msg.size())
 			msg = msg.substr(colpos + 1);
 		else
 			throw std::runtime_error("Message must begin with :");
+		return (msg);
 	}
+	return ("");
 }
 
 unsigned int hashSimple(const std::string& in_str) {

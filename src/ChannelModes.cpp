@@ -6,7 +6,7 @@
 /*   By: jcummins <jcummins@student.42prague.c      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/04 17:43:14 by jcummins          #+#    #+#             */
-/*   Updated: 2024/12/17 15:35:23 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/18 21:35:27 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,6 +36,26 @@ std::string Channel::modeHandler(int client_fd, std::istringstream &iss)
 	return (output);
 }
 
+std::string Channel::handleModeBan(int client_fd, const std::string &input, bool toggle) {
+	std::string message = "";
+	std::istringstream iss(input);
+	std::string	toban;
+
+	while (iss >> toban)
+	{
+		try {
+			if (toggle)
+				banClient(server.getClientRef(toban), server.getClientRef(client_fd));
+			else
+				revokeBan(server.getClientRef(toban), server.getClientRef(client_fd));
+		}
+		catch (std::exception &e) {
+			server.sendString(server.getFd(), client_fd, std::string(e.what()));
+		}
+	}
+	return (message);
+}
+
 std::string Channel::handleModeInvite(int client_fd, const std::string &input, bool toggle) {
 	std::string message = getName() + ": invite mode ";
 	std::istringstream iss(input);
@@ -50,10 +70,9 @@ std::string Channel::handleModeInvite(int client_fd, const std::string &input, b
 	{
 		try {
 			inviteClient(server.getClientRef(invite), server.getClientRef(client_fd));
-			server.sendString(client_fd, "Invited " + invite + " to " + getName());
 		}
 		catch (std::exception &e) {
-			server.sendString(client_fd, std::string(e.what()));
+			server.sendString(server.getFd(), client_fd, std::string(e.what()));
 		}
 	}
 	return (message);
@@ -95,17 +114,14 @@ std::string Channel::handleModeOperator(int client_fd, const std::string &input,
 	while (iss >> target)
 	{
 		try {
-			if (toggle) {
+			if (toggle)
 				addAdmin(server.getClientRef(target), server.getClientRef(client_fd));
-				server.sendString(client_fd, "Added " + target + " to " + getName() + " admin");
-			} else {
+			else
 				revokeAdmin(server.getClientRef(target), server.getClientRef(client_fd));
-				server.sendString(client_fd, "Removed " + target + " from " + getName() + " admin");
-			}
 			n_valid++;
 		}
 		catch (std::exception &e) {
-			server.sendString(client_fd, std::string(e.what()));
+			server.sendString(server.getFd(), client_fd, std::string(e.what()));
 		}
 	}
 	if (n_valid == 0)

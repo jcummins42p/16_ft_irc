@@ -6,7 +6,7 @@
 /*   By: jcummins <jcummins@student.42prague.com>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/06 15:23:17 by jcummins          #+#    #+#             */
-/*   Updated: 2024/12/17 21:34:12 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/18 21:48:42 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,10 @@
 const int &Server::getClientFd(const std::string &search) const {
 	return (getClientRef(search).getFd());
 }
+
+std::string Server::serverName( void ) { return ( _name ); }
+
+int	Server::getFd( void ) { return (server_fd); }
 
 Client* Server::getClient(const int &fd) const {
 	// Iterate through the clients

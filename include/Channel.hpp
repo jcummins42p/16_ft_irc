@@ -6,7 +6,7 @@
 /*   By: pyerima <pyerima@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/04 14:58:10 by mmakagon          #+#    #+#             */
-/*   Updated: 2024/12/17 15:00:28 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/18 21:14:14 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,7 +45,7 @@ private:
     std::set<const Client*> invited_clients; // Declare the invited clients.
     std::set<const Client*> banned_clients;
 
-	void internalMessage(const Client &client, const std::string &message) const;
+	void internalMessage(const Client &sender, const Client &client, const std::string &message) const;
 
 	//	Privilege checking enum and function
 	enum e_privlevel { NON, MEMBER, ADMIN, OWNER };
@@ -61,6 +61,7 @@ private:
 	std::string	handleModeOperator(int client_fd, const std::string &input, bool toggle);
 	std::string handleModeUserLimit(int client_fd, const std::string &input, bool toggle);
 	std::string handleModeSecret(int client_fd, const std::string &input, bool toggle);
+	std::string handleModeBan(int client_fd, const std::string &input, bool toggle);
 
 public:
     // Constructor / Destructor
@@ -81,7 +82,7 @@ public:
 
     // Channel management
     void addClient(const Client &target, const Client &admin);
-    void removeClient(const Client &target);
+    void removeClient(const Client &target, const std::string &reason);
 	// Admin rights
     void addAdmin(const Client &target, const Client &admin);
     void revokeAdmin(const Client &target, const Client &admin);
@@ -100,14 +101,13 @@ public:
     void revokeInvite(const Client &target, const Client &admin); // Declare the inviteClient method.
 
     // Group messaging
-    void channelMessage( const std::string &message, const Client &sender) ;
+    void channelMessage( const int sender_fd, const std::string &message) ;
 
 	// Info
 	bool containsMember(const Client &client ) const ;
 
 	//	Mode command selector
 	std::string modeHandler(int client_fd, std::istringstream &iss);
-
 };
 
 #endif

@@ -6,7 +6,7 @@
 #    By: mmakagon <mmakagon@student.42.com>         +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/04 14:17:14 by jcummins          #+#    #+#              #
-#    Updated: 2024/12/16 18:44:28 by jcummins         ###   ########.fr        #
+#    Updated: 2024/12/18 19:04:43 by jcummins         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -20,7 +20,7 @@ INC_DIR = include
 SRCS = main.cpp \
 	   Channel.cpp ChannelModes.cpp\
 	   Client.cpp \
-	   Server.cpp ServerGetters.cpp ServerCommands.cpp\
+	   Server.cpp ServerConstrDestr.cpp ServerGetters.cpp ServerCommands.cpp\
 	   Logger.cpp \
 	   utils.cpp
 OBJS = $(addprefix $(OBJ_DIR)/, $(SRCS:.cpp=.o))

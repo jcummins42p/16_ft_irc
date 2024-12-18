@@ -6,7 +6,7 @@
 /*   By: jcummins <jcummins@student.42prague.c      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/04 17:44:19 by jcummins          #+#    #+#             */
-/*   Updated: 2024/12/13 15:54:55 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/18 18:11:45 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@
 # include <sstream>
 
 
-void 			colonectomy( std::string &msg );
+std::string 	colonectomy( std::string &msg );
 unsigned int	hashSimple( const std::string &in_str );
 std::string		intToString( int number );
 std::string		timeStamp( void );

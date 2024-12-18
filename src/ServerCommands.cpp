@@ -6,13 +6,68 @@
 /*   By: jcummins <jcummins@student.42prague.com>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/06 15:21:19 by jcummins          #+#    #+#             */
-/*   Updated: 2024/12/17 21:23:08 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/18 21:52:01 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Server.hpp"
 
-void Server::handleNickCommand(int client_fd, std::istringstream& iss)
+void Server::handlePingCommand(int client_fd, std::istringstream &iss)
+{
+	std::string context = "";
+	std::getline(iss, context);
+
+	try {
+		if (!context.empty()) {
+			colonectomy(context);
+			context = " :" + context;
+		}
+		log.info("Client " + intToString(client_fd)
+				+ " sent ping request: " + iss.str());
+		sendString(server_fd, client_fd, "PONG " + serverName() + context);
+	}
+	catch ( std::exception &e ) {
+		log.warn("Pong: Client " + intToString(client_fd)
+				+ ": " + std::string(e.what()));
+		sendString(server_fd, client_fd, e.what());
+	}
+}
+
+void Server::handleCapCommand(int client_fd, std::istringstream &iss)
+{
+	(void) iss;
+	try {
+		log.info("Client " + intToString(client_fd)
+				+ " sent server capability request");
+		sendString(server_fd, client_fd, "CAP " + getClientRef(client_fd).getNick() + " LS :");
+	}
+	catch ( std::exception &e ) {
+		log.warn("Cap: Client " + intToString(client_fd)
+				+ ": " + std::string(e.what()));
+		sendString(server_fd, client_fd, e.what());
+	}
+}
+
+//	Authentication needs to be handled via PASS or irc clients can't connect
+void Server::handlePassCommand(int client_fd, std::istringstream &iss)
+{
+	std::string in_pass, message;
+	iss >> in_pass;
+
+	Client &client = getClientRef(client_fd);
+	try {
+		message = handleAuth(client_fd, in_pass);
+		log.info("Pass: " + message);
+		sendString(server_fd, client_fd, message);
+	}
+	catch ( std::exception &e ) {
+		log.warn("Pass: Client " + intToString(client_fd)
+				+ ": " + std::string(e.what()));
+		sendString(server_fd, client_fd, "464 " + client.getNick() + " :" + e.what());
+	}
+}
+
+void Server::handleNickCommand(int client_fd, std::istringstream &iss)
 {
 	std::string in_nick;
 	iss >> in_nick;
@@ -21,17 +76,17 @@ void Server::handleNickCommand(int client_fd, std::istringstream& iss)
 		log.info("Client " + intToString(client_fd)
 				+ " set nickname to " + clients[client_fd]->getNick());
 		if (in_nick.size() > clients[client_fd]->getNick().size())
-			sendString(client_fd, "Nickname too long, truncating to fit "
+			sendString(server_fd, client_fd, "Nickname too long, truncating to fit "
 					+ intToString(NICK_MAX_LEN) + " char limit");
 	}
 	catch ( std::exception &e ) {
 		log.warn("Nick: Client " + intToString(client_fd)
 				+ ": " + std::string(e.what()));
-		sendString(client_fd, e.what());
+		sendString(server_fd, client_fd, e.what());
 	}
 }
 
-void Server::handleUserCommand(int client_fd, std::istringstream& iss)
+void Server::handleUserCommand(int client_fd, std::istringstream &iss)
 {
 	std::string in_username;
 	iss >> in_username;
@@ -40,17 +95,17 @@ void Server::handleUserCommand(int client_fd, std::istringstream& iss)
 		log.info("Client " + intToString(client_fd)
 				+ " set username to " + clients[client_fd]->getUser());
 		if (in_username.size() > clients[client_fd]->getUser().size())
-			sendString(client_fd, "Username too long, truncating to fit "
+			sendString(server_fd, client_fd, "Username too long, truncating to fit "
 					+ intToString(USER_MAX_LEN) + " char limit");
 	}
 	catch ( std::exception &e ) {
-		sendString(client_fd, e.what());
+		sendString(server_fd, client_fd, e.what());
 		log.warn("User: Client " + intToString(client_fd)
 				+ ":" + std::string(e.what()));
 	}
 }
 
-void Server::handleJoinCommand(int client_fd, std::istringstream& iss) {
+void Server::handleJoinCommand(int client_fd, std::istringstream &iss) {
 	std::string channelName;
 	std::string password;
 	iss >> channelName >> password;
@@ -64,7 +119,7 @@ void Server::handleJoinCommand(int client_fd, std::istringstream& iss) {
 			log.error("Join: " + getClientRef(client_fd).getNick()
 					+ " failed to create channel " + channelName + ": "
 					+ std::string(e.what()));
-			sendString(client_fd, e.what());
+			sendString(server_fd, client_fd, e.what());
 		}
 	}
 	else {	// Otherwise, join the existing channel
@@ -75,7 +130,7 @@ void Server::handleJoinCommand(int client_fd, std::istringstream& iss) {
 		} catch (std::exception &e) {
 			log.error("Join: " + getClientRef(client_fd).getNick()
 					+ " failed to join: " + std::string(e.what()));
-			sendString(client_fd, "Failed to join: " + std::string(e.what()));
+			sendString(server_fd, client_fd, "Failed to join: " + std::string(e.what()));
 		}
 	}
 }
@@ -89,17 +144,16 @@ void Server::handlePartCommand(int client_fd, std::istringstream &iss)
 		Channel &channel = getChannelRef(channel_name);
 		if (!getClientRef(client_fd).isInChannel(channel))
 			throw (std::runtime_error("Not in channel " + channel_name));
-		channel.channelMessage(channel_name + ": " + clients[client_fd]->getNick()
-				+ " has left channel", *clients[client_fd]);
+		channel.channelMessage(client_fd, "PART " + channel.getName());
 		channel.removeClient(*clients[client_fd]);
 	}
 	catch (std::runtime_error &e) {
 		log.error("Part: " + std::string(e.what()));
-		sendString(client_fd, std::string(e.what()));
+		sendString(server_fd, client_fd, std::string(e.what()));
 	}
 	catch (std::exception &e) {
 		log.error("Closing empty channel " + channel_name);
-		sendString(client_fd, "Closing empty channel " + channel_name);
+		sendString(server_fd, client_fd, "Closing empty channel " + channel_name);
 		delete getChannel(channel_name);
 		channels.erase(channel_name);
 	}
@@ -129,12 +183,12 @@ void Server::handlePrivmsgCommand(int client_fd, std::istringstream &iss) {
 		// If the target is a client (not a channel), find the client by nickname
 		std::string formattedMsg = "Private message from "
 			+ clients[client_fd]->getNick() + ": " + msg;
-		return (sendString(getClientFd(target), formattedMsg));
+		return (server_fd, sendString(getClientFd(target), formattedMsg));
 	}
 	// If the target client was not found
 	catch ( std::exception &e ) {
 		log.error("Privmsg: " + std::string(e.what()));
-		sendString(client_fd, std::string(e.what()));
+		sendString(server_fd, client_fd, std::string(e.what()));
 	}
 }
 
@@ -154,11 +208,11 @@ void Server::handleTopicCommand(int client_fd, std::istringstream &iss) {
 		colonectomy(new_topic);
 		Channel &channel = getChannelRef(channel_name);
 		channel.setTopic(new_topic, *clients[client_fd]);
-		sendString(client_fd, channel_name
+		sendString(server_fd, client_fd, channel_name
 				+ " topic changed to '" + new_topic + '"');
 	} catch (std::exception &e) {
 		log.error("Topic: " + std::string(e.what()));
-		sendString(client_fd, std::string(e.what()));
+		sendString(server_fd, client_fd, std::string(e.what()));
 	}
 }
 
@@ -171,12 +225,12 @@ void Server::handleModeCommand(int client_fd, std::istringstream &iss) {
 		message = channel.modeHandler(client_fd, iss);
 		if (message.size()) {
 			log.info("Mode: " + message);
-			sendString(client_fd, message);
+			sendString(server_fd, client_fd, message);
 		}
 	}
 	catch (std::exception &e) {
 		log.error("Mode: " + std::string(e.what()));
-		sendString(client_fd, std::string(e.what()));
+		sendString(server_fd, client_fd, std::string(e.what()));
 	}
 }
 
@@ -188,12 +242,12 @@ void Server::handleKickCommand(int client_fd, std::istringstream &iss) {
 			+ target + " from channel " + channel_name);
 	try {
 		getChannelRef(channel_name).kickClient(getClientRef(target), getClientRef(client_fd));
-		sendString(client_fd, "Successfully kicked " + target
+		sendString(server_fd, client_fd, "Successfully kicked " + target
 				+ " from channel " + channel_name);
 	}
 	catch ( std::runtime_error &e ) {
 		log.error("Kick: " + std::string(e.what()));
-		sendString(client_fd, std::string(e.what()));
+		sendString(server_fd, client_fd, std::string(e.what()));
 	}
 }
 
@@ -205,12 +259,12 @@ void Server::handleBanCommand(int client_fd, std::istringstream &iss) {
 			+ target + " from channel " + channel_name);
 	try {
 		getChannelRef(channel_name).banClient(getClientRef(target), getClientRef(client_fd));
-		sendString(client_fd, "Successfully banned " + target
+		sendString(server_fd, client_fd, "Successfully banned " + target
 				+ " from channel " + channel_name);
 	}
 	catch ( std::runtime_error &e ) {
 		log.error("Ban: " + std::string(e.what()));
-		sendString(client_fd, std::string(e.what()));
+		sendString(server_fd, client_fd, std::string(e.what()));
 	}
 }
 
@@ -221,7 +275,7 @@ void Server::handleInviteCommand(int client_fd, std::istringstream &iss) {
 		getChannelRef(channel_name).inviteClient(getClientRef(target_nick), getClientRef(client_fd));
 	} catch (std::exception &e) {
 		log.error("Invite: " + std::string(e.what()));
-		sendString(client_fd, std::string(e.what()));
+		sendString(server_fd, client_fd, std::string(e.what()));
 	}
 }
 
@@ -245,11 +299,11 @@ void Server::handleListCommand(int client_fd, std::istringstream &iss) {
 					message += ": Topic: " + channel->getTopic();
 			}
 		}
-		sendString(client_fd, message);
+		sendString(server_fd, client_fd, message);
 	}
 	catch (std::runtime_error &e) {
 		log.error("List: " + std::string(e.what()));
-		sendString(client_fd, std::string(e.what()));
+		sendString(server_fd, client_fd, std::string(e.what()));
 	}
 }
 
@@ -257,12 +311,7 @@ void Server::handleDieCommand(int client_fd, std::istringstream &iss) {
 	(void) iss;
 	static int timescalled = 0;
 	broadcastMessage("Server shutting down, please close your session");
-	// broadcast message isn't working, it seems. Perhaps it needs more cycles
-	// to actually send what this puts in the outbuffer
-	// likely we want to set a time limit in the main loop to live for, while sending messages
 	(void) client_fd;
 	if (timescalled++ == 1)
 		_running = false;
-	// obviously this needs more checks, and if the fd 5 user leaves then it cannot be shut
-	// but is this reallt a problem? It's just there to demonstrate the destructor.
 }

@@ -6,7 +6,7 @@
 /*   By: pyerima <pyerima@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/04 17:00:44 by mmakagon          #+#    #+#             */
-/*   Updated: 2024/12/17 21:35:49 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/18 21:29:24 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,14 +58,15 @@ Channel::Channel(Server &server, std::string in_name, const Client& creator, con
 	modeHandlers['o'] = &Channel::handleModeOperator;
 	modeHandlers['l'] = &Channel::handleModeUserLimit;
 	modeHandlers['s'] = &Channel::handleModeSecret;
+	modeHandlers['b'] = &Channel::handleModeBan;
 }
 
 Channel::~Channel(void) {}
 
 /* PRIVATE METHODS */
 
-void Channel::internalMessage(const Client &client, const std::string &message) const {
-	server.sendString(client.getFd(), message.c_str());
+void Channel::internalMessage(const Client &sender, const Client &client, const std::string &message) const {
+	server.sendString(sender.getFd(), client.getFd(), message.c_str());
 }
 
 /* GETTERS */
@@ -95,9 +96,9 @@ void	Channel::setTopic(const std::string &in_topic, const Client &admin) {
 		throw std::runtime_error ("Can't set an empty topic");
 	topic = in_topic;
 	topic_set = true;
-	channelMessage(getName() + " topic changed by "
+	channelMessage(admin.getFd(), getName() + " topic changed by "
 			+ admin.getNick() + " to '"
-			+ in_topic + "'", admin);
+			+ in_topic + "'");
 }
 
 void	Channel::setPass(const std::string &in_pass, const Client &admin) {
@@ -127,7 +128,7 @@ void	Channel::addAdmin(const Client &target, const Client &admin) {
 	if (clients.find(&target) == clients.end())
 		throw std::runtime_error("Not in the channel!");
 	admins.insert(&target);
-	internalMessage(target, name + ": You have been granted admin by " + admin.getNick());
+	internalMessage(admin, target, name + ": You have been granted admin by " + admin.getNick());
 }
 
 void	Channel::revokeAdmin(const Client &target, const Client &admin) {
@@ -137,7 +138,7 @@ void	Channel::revokeAdmin(const Client &target, const Client &admin) {
 	if (admins.find(&target) == admins.end())
 		throw (std::runtime_error("Target is not admin!"));
 	admins.erase(&target);
-	internalMessage(target, name + ": Your admin rights were revoked by " + admin.getNick());
+	internalMessage(admin, target, name + ": Your admin rights were revoked by " + admin.getNick());
 }
 
 void Channel::kickClient(const Client &target, const Client &admin) {
@@ -146,9 +147,9 @@ void Channel::kickClient(const Client &target, const Client &admin) {
 		throw (std::runtime_error(target.getNick() + " is not in channel"));
 	if (owner != &admin && (admins.find(&target) != admins.end()))
 		throw (std::runtime_error("Cannot kick admin"));
-	internalMessage(target, getName() + ": You have been kicked by "
+	internalMessage(admin, target, getName() + ": You have been kicked by "
 							+ admin.getNick() + ", bye.");
-	removeClient( target );
+	removeClient( target, "Kicked by " + admin.getNick() );
 }
 
 void Channel::banClient(const Client &target, const Client &admin) {
@@ -158,16 +159,18 @@ void Channel::banClient(const Client &target, const Client &admin) {
 	if (invited_clients.find(&target) != invited_clients.end())
 		revokeInvite(target, admin);
 	banned_clients.insert(&target);  // Add the client to the invited list.
-	internalMessage(target, name + ": You have been banned by " + admin.getNick());
-	internalMessage(admin, name + ": You banned " + target.getNick());
+	channelMessage(server.getFd(), "MODE " + getName() + " +b " + target.getNick());
+	internalMessage(admin, target, name + ": You have been banned by " + admin.getNick());
+	internalMessage(admin, admin, name + ": You banned " + target.getNick());
 }
 
 void	Channel::revokeBan(const Client &target, const Client &admin) {
 	checkRights(admin, ADMIN);
 	if (banned_clients.find(&target) == banned_clients.end())
 		throw (std::runtime_error(target.getNick() + " is not on ban list"));
-	internalMessage(target, name + ": Your ban has been revoked by " + admin.getNick());
-	internalMessage(admin, name + ": You unbanned " + target.getNick());
+	internalMessage(admin, target, name + ": Your ban has been revoked by " + admin.getNick());
+
+	channelMessage(server.getFd(), "MODE " + getName() + " -b " + target.getNick());
 	banned_clients.erase(&target);
 }
 
@@ -188,27 +191,31 @@ void Channel::joinChannel(const Client &target, const std::string &password) {
 			throw std::runtime_error(getName() + ": Incorrect password");
 		}
 	}
-	internalMessage(target, name + ": You have joined the channel");
+	server.sendString(server.getFd(), target.getFd(), name + " :You have joined the channel");
 	if (hasTopic())
-		internalMessage(target, "Topic: " + getTopic());
+		server.sendString(server.getFd(), target.getFd(),
+				"332 " + target.getNick() + " " + getName() + " :" + getTopic());
+	else
+		server.sendString(server.getFd(), target.getFd(),
+				"331 " + target.getNick() + " " + getName() + " :No topic is set");
 	// Add the client to the channel.
 	clients.insert(&target);
-	channelMessage(getName() + ": " + target.getNick() + " joined the channel!", target);
+	channelMessage(server.getFd(), getName() + ": " + target.getNick() + " joined the channel!");
 }
 
-void Channel::removeClient(const Client &target) {
+void Channel::removeClient(const Client &target, const std::string &reason) {
 	admins.erase(&target);  // Remove admin rights if applicable.
 	clients.erase(&target); // Remove the client from the channel.
 
-	internalMessage(target, getName() + ": You left the channel");
+	channelMessage(target.getFd(), " PART " + getName() + " :" + reason);
 	// Reassign admin rights if the last admin leaves:
 	if (admins.empty() && !clients.empty()) {
 		admins.insert(*clients.begin());  // Assign the first client as the new admin
-		internalMessage(**clients.begin(), getName() + ": You are now channel admin");
+		channelMessage(server.getFd(), "MODE " + getName() + " +a " + (*clients.begin())->getNick());
 	}
 	if (owner == &target && !admins.empty()) { // if owner leaves, appoint another admin
 		owner = *admins.begin();
-		internalMessage(*owner, getName() + ": You are now channel owner");
+		channelMessage(server.getFd(), getName() + " new channel owner: " + (*clients.begin())->getNick());
 	}
 	// If there are no clients left, you can clean up or close the channel.
 	if (clients.empty()) {
@@ -218,12 +225,14 @@ void Channel::removeClient(const Client &target) {
 
 /* GROUP MESSAGES */
 
-void Channel::channelMessage(const std::string &message, const Client &sender) {
-	checkRights(sender, MEMBER);
+void Channel::channelMessage(const int sender_fd, const std::string &message) {
+
+	if (sender_fd != server.getFd())
+		checkRights(server.getClientRef(sender_fd), MEMBER);
 	for (std::set<const Client*>::iterator it = clients.begin(); it != clients.end(); ++it) {
 		// Don't send the message back to the sender
-		if (*it != &sender)
-			server.sendString((*it)->getFd(), message);
+		if ((*it)->getFd() != sender_fd)
+			server.sendString(sender_fd, (*it)->getFd(), message);
 	}
 }
 
@@ -238,8 +247,8 @@ void Channel::inviteClient(const Client &target, const Client &admin) {
 	if (banned_clients.find(&target) != banned_clients.end())
 		revokeBan(target, admin);
 	invited_clients.insert(&target);  // Add the client to the invited list.
-	internalMessage(target, name + ": You have been invited to join by " + admin.getNick());
-	internalMessage(admin, name + ": You invited " + target.getNick());
+	internalMessage(admin, target, name + ": You have been invited to join by " + admin.getNick());
+	server.sendString(server.getFd(), admin.getFd(), getName() + " :You invited " + target.getNick());
 }
 
 void	Channel::revokeInvite(const Client &target, const Client &admin) {
@@ -247,7 +256,7 @@ void	Channel::revokeInvite(const Client &target, const Client &admin) {
 	if (invited_clients.find(&target) == invited_clients.end())
 		throw (std::runtime_error(target.getNick() + " is not on invite list!"));
 	invited_clients.erase(&target);
-	internalMessage(target, name + ": Your invite has been revoked by " + admin.getNick());
+	internalMessage(admin, target, name + ": Your invite has been revoked by " + admin.getNick());
 }
 
 /* INFO */
