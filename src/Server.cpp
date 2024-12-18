@@ -6,7 +6,7 @@
 /*   By: pyerima <pyerima@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 14:48:02 by pyerima           #+#    #+#             */
-/*   Updated: 2024/12/18 21:48:20 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/18 22:16:33 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -203,32 +203,22 @@ void Server::processMessage(int client_fd, const std::string& input) {
 
 //	recv receives a message from a socket
 void Server::handleClient(int client_fd) {
-	char buffer[BUFFER_SIZE];
-	for (unsigned int i = 0; i < BUFFER_SIZE; i++)
-		buffer[i] = '\0';
+	char buffer[BUFFER_SIZE] = {0};
 	ssize_t bytes_received = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
 
 	if (bytes_received <= 0)
-		handleDisconnect(client_fd, bytes_received);
+		return (handleDisconnect(client_fd, bytes_received));
 
-	if (buffer[bytes_received - 1] != '\n') {
-		buffer[bytes_received] = '\n';
-		buffer[bytes_received] = '\0';
-	}
-	else
-		buffer[bytes_received] = '\0';
+	buffer[bytes_received] = '\0';
 	inBuffs[client_fd] += buffer;
 
 	size_t pos;
 	while ((pos = inBuffs[client_fd].find("\n")) != std::string::npos) {
 		// Extract and process one complete message at a time
+		pos = (pos > 0 && inBuffs[client_fd][pos - 1] == '\r') ? pos - 1 : pos;
 		std::string message = inBuffs[client_fd].substr(0, pos);
-		inBuffs[client_fd].erase(0, pos + 2);
+		inBuffs[client_fd].erase(0, pos + 1);
 		log.info("Received message from fd " + intToString(client_fd) + ": " + message);
-		//	need to handle messages which end with \r\n to comply with irc
-		if (!message.empty() && message[message.size() - 1] == '\r' )
-			message[message.size() - 1] = '\0';
-		//if (!handleAuth(client_fd, message))
 		processMessage(client_fd, message);
 	}
 }

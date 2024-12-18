@@ -6,7 +6,7 @@
 /*   By: jcummins <jcummins@student.42prague.com>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/06 15:21:19 by jcummins          #+#    #+#             */
-/*   Updated: 2024/12/18 21:52:01 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/18 22:01:05 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -144,8 +144,7 @@ void Server::handlePartCommand(int client_fd, std::istringstream &iss)
 		Channel &channel = getChannelRef(channel_name);
 		if (!getClientRef(client_fd).isInChannel(channel))
 			throw (std::runtime_error("Not in channel " + channel_name));
-		channel.channelMessage(client_fd, "PART " + channel.getName());
-		channel.removeClient(*clients[client_fd]);
+		channel.removeClient(*clients[client_fd], "User PART command");
 	}
 	catch (std::runtime_error &e) {
 		log.error("Part: " + std::string(e.what()));
@@ -164,9 +163,7 @@ bool Server::sendMsgToChannel(int client_fd, const std::string &target, const st
 		return (1);
 	// Look for the channel by name
 	Channel &channel = getChannelRef(target);
-	std::string formattedMsg = channel.getName()
-		+ " message from " + clients[client_fd]->getNick() + ": " + msg;
-	channel.channelMessage(formattedMsg, *clients[client_fd]);
+	channel.channelMessage(client_fd, msg);
 	return (0);
 }
 
@@ -178,12 +175,11 @@ void Server::handlePrivmsgCommand(int client_fd, std::istringstream &iss) {
 
 	try {
 		colonectomy(msg);
+		msg = "PRIVMSG " + target + " :" + msg;
 		if (!sendMsgToChannel(client_fd, target, msg))
 			return ;
 		// If the target is a client (not a channel), find the client by nickname
-		std::string formattedMsg = "Private message from "
-			+ clients[client_fd]->getNick() + ": " + msg;
-		return (server_fd, sendString(getClientFd(target), formattedMsg));
+		return (sendString(client_fd, getClientFd(target), msg));
 	}
 	// If the target client was not found
 	catch ( std::exception &e ) {
