@@ -6,7 +6,7 @@
 /*   By: jcummins <jcummins@student.42prague.c      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/04 17:43:14 by jcummins          #+#    #+#             */
-/*   Updated: 2024/12/18 21:35:27 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/19 16:26:03 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,6 +60,7 @@ std::string Channel::handleModeInvite(int client_fd, const std::string &input, b
 	std::string message = getName() + ": invite mode ";
 	std::istringstream iss(input);
 	std::string	invite;
+	Client &executor = server.getClientRef(client_fd);
 
 	if (toggle)
 		message += "ON";
@@ -69,7 +70,7 @@ std::string Channel::handleModeInvite(int client_fd, const std::string &input, b
 	while (iss >> invite)
 	{
 		try {
-			inviteClient(server.getClientRef(invite), server.getClientRef(client_fd));
+			inviteClient(server.getClientRef(invite), executor);
 		}
 		catch (std::exception &e) {
 			server.sendString(server.getFd(), client_fd, std::string(e.what()));

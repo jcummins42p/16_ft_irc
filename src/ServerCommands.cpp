@@ -6,7 +6,7 @@
 /*   By: jcummins <jcummins@student.42prague.com>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/06 15:21:19 by jcummins          #+#    #+#             */
-/*   Updated: 2024/12/18 22:01:05 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/19 18:02:43 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,10 +18,10 @@ void Server::handlePingCommand(int client_fd, std::istringstream &iss)
 	std::getline(iss, context);
 
 	try {
-		if (!context.empty()) {
-			colonectomy(context);
-			context = " :" + context;
-		}
+		//if (!context.empty()) {
+			//colonectomy(context);
+			//context = " :" + context;
+		//}
 		log.info("Client " + intToString(client_fd)
 				+ " sent ping request: " + iss.str());
 		sendString(server_fd, client_fd, "PONG " + serverName() + context);
@@ -130,7 +130,7 @@ void Server::handleJoinCommand(int client_fd, std::istringstream &iss) {
 		} catch (std::exception &e) {
 			log.error("Join: " + getClientRef(client_fd).getNick()
 					+ " failed to join: " + std::string(e.what()));
-			sendString(server_fd, client_fd, "Failed to join: " + std::string(e.what()));
+			sendString(server_fd, client_fd, std::string(e.what()));
 		}
 	}
 }

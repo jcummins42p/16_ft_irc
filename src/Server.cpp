@@ -6,7 +6,7 @@
 /*   By: pyerima <pyerima@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 14:48:02 by pyerima           #+#    #+#             */
-/*   Updated: 2024/12/18 22:16:33 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/19 18:01:20 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -103,6 +103,7 @@ void Server::handleDisconnect(int client_fd, int bytes_received) {
 	close(client_fd);
 	clients.erase(client_fd);
 	inBuffs.erase(client_fd);
+	outBuffs.erase(client_fd);
 }
 
 std::string Server::handleAuth(int client_fd, const std::string &in_pass)
@@ -193,10 +194,10 @@ void Server::processMessage(int client_fd, const std::string& input) {
 		if (it != commandHandlers.end())
 			(this->*(it->second))(client_fd, iss);
 		else
-			throw std::runtime_error("Unknown command '" + command + "'");
+			throw std::runtime_error("421 " + client.getNick() + " CMD :Unknown command '" + command + "'");
 	}
 	catch (std::exception &e) {
-		sendString(getFd(), client_fd, "421 " + client.getNick() + " CMD :" + std::string(e.what()));
+		sendString(getFd(), client_fd, std::string(e.what()));
 		log.error("ProcessMessage: client fd " + intToString(client_fd) + ": " + std::string(e.what()));
 	}
 }
@@ -218,9 +219,12 @@ void Server::handleClient(int client_fd) {
 		pos = (pos > 0 && inBuffs[client_fd][pos - 1] == '\r') ? pos - 1 : pos;
 		std::string message = inBuffs[client_fd].substr(0, pos);
 		inBuffs[client_fd].erase(0, pos + 1);
-		log.info("Received message from fd " + intToString(client_fd) + ": " + message);
-		processMessage(client_fd, message);
+		if (!message.empty()) {
+			log.info("Received message from fd " + intToString(client_fd) + ": " + message);
+			processMessage(client_fd, message);
+		}
 	}
+	inBuffs[client_fd].erase();
 }
 
 void Server::run() {

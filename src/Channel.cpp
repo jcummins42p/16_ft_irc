@@ -6,7 +6,7 @@
 /*   By: pyerima <pyerima@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/04 17:00:44 by mmakagon          #+#    #+#             */
-/*   Updated: 2024/12/18 21:29:24 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/19 17:20:14 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,11 +80,14 @@ bool Channel::isSecret(void) const { return (secret); }
 
 void	Channel::checkRights(const Client &executor, e_privlevel level) {
 	if (level >= MEMBER && clients.find(&executor) == clients.end())
-		throw (std::runtime_error(getName() + ": Not in the channel"));
+		throw (std::runtime_error("442 " + executor.getNick() + " "
+				+ getName() + " :User not in the channel"));
 	else if (level >= ADMIN && admins.find(&executor) == admins.end())
-		throw std::runtime_error (getName() + ": Admin rights required");
+		throw std::runtime_error ("482 " + executor.getNick() + " "
+				+ getName() + " :User is not an operator");
 	else if (level == OWNER && &executor != owner)
-		throw std::runtime_error (getName() + ": Channel owner rights required");
+		throw std::runtime_error ("482 " + executor.getNick() + " "
+				+ getName() + " :User is not channel owner");
 }
 
 void	Channel::setTopic(const std::string &in_topic, const Client &admin) {
@@ -128,7 +131,8 @@ void	Channel::addAdmin(const Client &target, const Client &admin) {
 	if (clients.find(&target) == clients.end())
 		throw std::runtime_error("Not in the channel!");
 	admins.insert(&target);
-	internalMessage(admin, target, name + ": You have been granted admin by " + admin.getNick());
+	channelMessage(admin.getFd(), name + ": " + target.getNick()
+			+ " has been granted admin by " + admin.getNick());
 }
 
 void	Channel::revokeAdmin(const Client &target, const Client &admin) {
@@ -138,7 +142,8 @@ void	Channel::revokeAdmin(const Client &target, const Client &admin) {
 	if (admins.find(&target) == admins.end())
 		throw (std::runtime_error("Target is not admin!"));
 	admins.erase(&target);
-	internalMessage(admin, target, name + ": Your admin rights were revoked by " + admin.getNick());
+	channelMessage(admin.getFd(), name + ": " + target.getNick()
+			+ " admin rights revoked by " + admin.getNick());
 }
 
 void Channel::kickClient(const Client &target, const Client &admin) {
@@ -147,8 +152,8 @@ void Channel::kickClient(const Client &target, const Client &admin) {
 		throw (std::runtime_error(target.getNick() + " is not in channel"));
 	if (owner != &admin && (admins.find(&target) != admins.end()))
 		throw (std::runtime_error("Cannot kick admin"));
-	internalMessage(admin, target, getName() + ": You have been kicked by "
-							+ admin.getNick() + ", bye.");
+	channelMessage(admin.getFd(), name + ": " + target.getNick()
+			+ " was kicked by " + admin.getNick());
 	removeClient( target, "Kicked by " + admin.getNick() );
 }
 
@@ -179,16 +184,21 @@ void	Channel::revokeBan(const Client &target, const Client &admin) {
 void Channel::joinChannel(const Client &target, const std::string &password) {
 	// Check if the channel is invite-only and if the client is invited.
 	if (banned_clients.find(&target) != banned_clients.end())
-		throw std::runtime_error(getName() + ": " + target.getNick() + " is banned!");
+		throw std::runtime_error("474 " + target.getNick()
+				+ " " + getName() + " :User is banned from this channel!");
 	if (clients.find(&target) != clients.end())
-		throw std::runtime_error(getName() + ": Already a member!");
+		throw std::runtime_error("443 " + target.getNick()
+				+ " " + getName() + " :Already a channel member!");
 	if (invite_only && invited_clients.find(&target) == invited_clients.end())
-		throw std::runtime_error(getName() + " is invite-only!");
+		throw std::runtime_error("473 " + target.getNick()
+				+ " " + getName() + " :Channel is invite-only!");
 	if (clients.size() >= clnts_limit) // If the channel is full, deny the client.
-		throw std::runtime_error(getName() + " is already full!");
+		throw std::runtime_error("471 " + target.getNick()
+				+ " " + getName() + " :Channel is full and cannot accept members!");
 	if (locked) { // If the channel isn't invite-only, check the password.
 		if (hashed_pass != hashSimple(password)) {
-			throw std::runtime_error(getName() + ": Incorrect password");
+			throw std::runtime_error("475 " + target.getNick()
+				+ " " + getName() + " :Incorrect password");
 		}
 	}
 	server.sendString(server.getFd(), target.getFd(), name + " :You have joined the channel");
@@ -204,10 +214,11 @@ void Channel::joinChannel(const Client &target, const std::string &password) {
 }
 
 void Channel::removeClient(const Client &target, const std::string &reason) {
+	channelMessage(target.getFd(), " PART " + getName() + " :" + reason);
+	server.sendString(target.getFd(), target.getFd(), " PART " + getName() + " :" + reason);
 	admins.erase(&target);  // Remove admin rights if applicable.
 	clients.erase(&target); // Remove the client from the channel.
 
-	channelMessage(target.getFd(), " PART " + getName() + " :" + reason);
 	// Reassign admin rights if the last admin leaves:
 	if (admins.empty() && !clients.empty()) {
 		admins.insert(*clients.begin());  // Assign the first client as the new admin
