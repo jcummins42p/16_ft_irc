@@ -6,7 +6,7 @@
 /*   By: jcummins <jcummins@student.42prague.c      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/04 17:43:14 by jcummins          #+#    #+#             */
-/*   Updated: 2024/12/19 16:26:03 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/20 00:08:10 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,11 +14,14 @@
 
 std::string Channel::modeHandler(int client_fd, std::istringstream &iss)
 {
+	Client &client = server.getClientRef(client_fd);
 	std::string mode, input, output;
 	bool toggle = false;
 	iss >> mode;
 
-	checkRights(server.getClientRef(client_fd), ADMIN);
+	checkRights(client, ADMIN);
+	if (mode.size() == 0)
+		return (sendModeInfo(client));
 	if (mode.size() != 2)
 		throw std::runtime_error("Invalid mode switch '" + mode + "'");
 	if (mode[0] == '+')
@@ -33,6 +36,26 @@ std::string Channel::modeHandler(int client_fd, std::istringstream &iss)
 	} else {
 		throw std::runtime_error("Invalid mode switch '" + mode + "'");
 	}
+	return (output);
+}
+
+std::string Channel::sendModeInfo(const Client &client) {
+	std::string output;
+
+	output = "324 " + client.getNick() + " " + getName();
+	if (!locked && !secret && !invite_only && !topic_admins_only && (clnts_limit == MAX_CLIENTS))
+		return (output);	// no modes set
+	output += " +";
+	if (locked)
+		output += "k";
+	if (secret)
+		output += "s";
+	if (invite_only)
+		output += "i";
+	if (topic_admins_only)
+		output += "t";
+	if (clnts_limit < MAX_CLIENTS)
+		output += "l";
 	return (output);
 }
 

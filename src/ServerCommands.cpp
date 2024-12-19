@@ -6,7 +6,7 @@
 /*   By: jcummins <jcummins@student.42prague.com>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/06 15:21:19 by jcummins          #+#    #+#             */
-/*   Updated: 2024/12/19 18:02:43 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/20 00:11:30 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,10 +18,6 @@ void Server::handlePingCommand(int client_fd, std::istringstream &iss)
 	std::getline(iss, context);
 
 	try {
-		//if (!context.empty()) {
-			//colonectomy(context);
-			//context = " :" + context;
-		//}
 		log.info("Client " + intToString(client_fd)
 				+ " sent ping request: " + iss.str());
 		sendString(server_fd, client_fd, "PONG " + serverName() + context);
@@ -141,7 +137,7 @@ void Server::handlePartCommand(int client_fd, std::istringstream &iss)
 	iss >> channel_name;
 
 	try {
-		Channel &channel = getChannelRef(channel_name);
+		Channel &channel = getChannelRef(client_fd, channel_name);
 		if (!getClientRef(client_fd).isInChannel(channel))
 			throw (std::runtime_error("Not in channel " + channel_name));
 		channel.removeClient(*clients[client_fd], "User PART command");
@@ -162,7 +158,7 @@ bool Server::sendMsgToChannel(int client_fd, const std::string &target, const st
 	if (target[0] != '#' && target[0] != '&')
 		return (1);
 	// Look for the channel by name
-	Channel &channel = getChannelRef(target);
+	Channel &channel = getChannelRef(client_fd, target);
 	channel.channelMessage(client_fd, msg);
 	return (0);
 }
@@ -190,9 +186,7 @@ void Server::handlePrivmsgCommand(int client_fd, std::istringstream &iss) {
 
 void Server::handleQuitCommand(int client_fd, std::istringstream &iss) {
 	(void) iss;
-	std::cout << "Client " << client_fd << " disconnected." << std::endl;
-	close(client_fd); // Close the client's socket
-	clients.erase(client_fd); // Remove client from the map
+	handleDisconnect(client_fd, 0);
 }
 
 void Server::handleTopicCommand(int client_fd, std::istringstream &iss) {
@@ -202,7 +196,7 @@ void Server::handleTopicCommand(int client_fd, std::istringstream &iss) {
 
 	try {
 		colonectomy(new_topic);
-		Channel &channel = getChannelRef(channel_name);
+		Channel &channel = getChannelRef(client_fd, channel_name);
 		channel.setTopic(new_topic, *clients[client_fd]);
 		sendString(server_fd, client_fd, channel_name
 				+ " topic changed to '" + new_topic + '"');
@@ -217,7 +211,7 @@ void Server::handleModeCommand(int client_fd, std::istringstream &iss) {
 	iss >> channel_name; // read channel name and mode
 
 	try {
-		Channel &channel = getChannelRef(channel_name);
+		Channel &channel = getChannelRef(client_fd, channel_name);
 		message = channel.modeHandler(client_fd, iss);
 		if (message.size()) {
 			log.info("Mode: " + message);
@@ -226,7 +220,8 @@ void Server::handleModeCommand(int client_fd, std::istringstream &iss) {
 	}
 	catch (std::exception &e) {
 		log.error("Mode: " + std::string(e.what()));
-		sendString(server_fd, client_fd, std::string(e.what()));
+		sendString(server_fd, client_fd, getClientRef(client_fd).getNick()
+				+ " " + channel_name + " :" + std::string(e.what()));
 	}
 }
 
@@ -237,13 +232,14 @@ void Server::handleKickCommand(int client_fd, std::istringstream &iss) {
 	log.info("Client " + intToString(client_fd) + " attempting to kick "
 			+ target + " from channel " + channel_name);
 	try {
-		getChannelRef(channel_name).kickClient(getClientRef(target), getClientRef(client_fd));
+		getChannelRef(client_fd, channel_name).kickClient(getClientRef(target), getClientRef(client_fd));
 		sendString(server_fd, client_fd, "Successfully kicked " + target
 				+ " from channel " + channel_name);
 	}
 	catch ( std::runtime_error &e ) {
 		log.error("Kick: " + std::string(e.what()));
-		sendString(server_fd, client_fd, std::string(e.what()));
+		sendString(server_fd, client_fd, getClientRef(client_fd).getNick()
+				+ " " + channel_name + " :" + std::string(e.what()));
 	}
 }
 
@@ -254,13 +250,14 @@ void Server::handleBanCommand(int client_fd, std::istringstream &iss) {
 	log.info("Client " + intToString(client_fd) + " attempting to ban "
 			+ target + " from channel " + channel_name);
 	try {
-		getChannelRef(channel_name).banClient(getClientRef(target), getClientRef(client_fd));
+		getChannelRef(client_fd, channel_name).banClient(getClientRef(target), getClientRef(client_fd));
 		sendString(server_fd, client_fd, "Successfully banned " + target
 				+ " from channel " + channel_name);
 	}
 	catch ( std::runtime_error &e ) {
 		log.error("Ban: " + std::string(e.what()));
-		sendString(server_fd, client_fd, std::string(e.what()));
+		sendString(server_fd, client_fd, getClientRef(client_fd).getNick()
+				+ " " + channel_name + " :" + std::string(e.what()));
 	}
 }
 
@@ -268,10 +265,11 @@ void Server::handleInviteCommand(int client_fd, std::istringstream &iss) {
 	std::string target_nick, channel_name;
 	iss >> target_nick >> channel_name;
 	try {
-		getChannelRef(channel_name).inviteClient(getClientRef(target_nick), getClientRef(client_fd));
+		getChannelRef(client_fd, channel_name).inviteClient(getClientRef(target_nick), getClientRef(client_fd));
 	} catch (std::exception &e) {
 		log.error("Invite: " + std::string(e.what()));
-		sendString(server_fd, client_fd, std::string(e.what()));
+		sendString(server_fd, client_fd, getClientRef(client_fd).getNick()
+				+ " " + channel_name + " :" + std::string(e.what()));
 	}
 }
 
@@ -299,7 +297,8 @@ void Server::handleListCommand(int client_fd, std::istringstream &iss) {
 	}
 	catch (std::runtime_error &e) {
 		log.error("List: " + std::string(e.what()));
-		sendString(server_fd, client_fd, std::string(e.what()));
+		sendString(server_fd, client_fd, getClientRef(client_fd).getNick()
+				+ " :" + std::string(e.what()));
 	}
 }
 

@@ -6,7 +6,7 @@
 /*   By: pyerima <pyerima@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/04 14:58:10 by mmakagon          #+#    #+#             */
-/*   Updated: 2024/12/18 21:14:14 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/19 23:24:40 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,6 +55,7 @@ private:
 	typedef std::string (Channel::*ChanModeHandler)(int, const std::string &, bool);
 	std::map<char, ChanModeHandler> modeHandlers;
 	// Mode controls
+	std::string sendModeInfo(const Client &client);
 	std::string handleModeInvite(int client_fd, const std::string &input, bool toggle);
 	std::string handleModeTopic(int client_fd, const std::string &input, bool toggle);
 	std::string handleModeKey(int client_fd, const std::string &input, bool toggle);

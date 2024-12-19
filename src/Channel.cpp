@@ -6,7 +6,7 @@
 /*   By: pyerima <pyerima@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/04 17:00:44 by mmakagon          #+#    #+#             */
-/*   Updated: 2024/12/19 17:20:14 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/20 00:27:32 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -111,6 +111,7 @@ void	Channel::setPass(const std::string &in_pass, const Client &admin) {
 	else if (in_pass.size() > MAX_PASS_LEN)
 		throw std::runtime_error ("Password length cannot exceed " + intToString(MAX_PASS_LEN));
 	hashed_pass = hashSimple(in_pass);
+	channelMessage(admin.getFd(), "MODE " + name + " +k " + in_pass);
 }
 
 void Channel::setUserLimit(const long &newlimit, const Client &admin) {
@@ -120,6 +121,7 @@ void Channel::setUserLimit(const long &newlimit, const Client &admin) {
 	if (newlimit > static_cast<long>(SIZE_MAX))
 		throw std::runtime_error ("User limit cannot exceed " + intToString(SIZE_MAX));
 	clnts_limit = static_cast<size_t>(newlimit);
+	channelMessage(admin.getFd(), "MODE " + name + " +l " + intToString(newlimit));
 }
 
 /* ADMIN FUNCTIONS */
@@ -131,8 +133,7 @@ void	Channel::addAdmin(const Client &target, const Client &admin) {
 	if (clients.find(&target) == clients.end())
 		throw std::runtime_error("Not in the channel!");
 	admins.insert(&target);
-	channelMessage(admin.getFd(), name + ": " + target.getNick()
-			+ " has been granted admin by " + admin.getNick());
+	channelMessage(admin.getFd(), "MODE " + name + " +o " + target.getNick());
 }
 
 void	Channel::revokeAdmin(const Client &target, const Client &admin) {
@@ -142,8 +143,7 @@ void	Channel::revokeAdmin(const Client &target, const Client &admin) {
 	if (admins.find(&target) == admins.end())
 		throw (std::runtime_error("Target is not admin!"));
 	admins.erase(&target);
-	channelMessage(admin.getFd(), name + ": " + target.getNick()
-			+ " admin rights revoked by " + admin.getNick());
+	channelMessage(admin.getFd(), "MODE " + name + " -o " + target.getNick());
 }
 
 void Channel::kickClient(const Client &target, const Client &admin) {
@@ -174,7 +174,6 @@ void	Channel::revokeBan(const Client &target, const Client &admin) {
 	if (banned_clients.find(&target) == banned_clients.end())
 		throw (std::runtime_error(target.getNick() + " is not on ban list"));
 	internalMessage(admin, target, name + ": Your ban has been revoked by " + admin.getNick());
-
 	channelMessage(server.getFd(), "MODE " + getName() + " -b " + target.getNick());
 	banned_clients.erase(&target);
 }
@@ -218,11 +217,13 @@ void Channel::removeClient(const Client &target, const std::string &reason) {
 	server.sendString(target.getFd(), target.getFd(), " PART " + getName() + " :" + reason);
 	admins.erase(&target);  // Remove admin rights if applicable.
 	clients.erase(&target); // Remove the client from the channel.
+	server.sendString(server.getFd(), target.getFd(), "442 " + target.getNick()
+				+ " " + getName() + " :User not in the channel");
 
 	// Reassign admin rights if the last admin leaves:
 	if (admins.empty() && !clients.empty()) {
 		admins.insert(*clients.begin());  // Assign the first client as the new admin
-		channelMessage(server.getFd(), "MODE " + getName() + " +a " + (*clients.begin())->getNick());
+		channelMessage(server.getFd(), "MODE " + getName() + " +o " + (*clients.begin())->getNick());
 	}
 	if (owner == &target && !admins.empty()) { // if owner leaves, appoint another admin
 		owner = *admins.begin();

@@ -6,7 +6,7 @@
 /*   By: pyerima <pyerima@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 14:48:02 by pyerima           #+#    #+#             */
-/*   Updated: 2024/12/19 18:01:20 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/19 23:39:08 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,20 +42,6 @@ void Server::sendMessages(struct pollfd &fd)
 	}
 }
 
-//	Get the correct message prefix based on sender fd
-std::string Server::getPrefix(int sender_fd) {
-	std::string prefix;
-
-	if (sender_fd == server_fd)
-		prefix = ":" + serverName() + " ";
-	else {
-		Client &client = getClientRef(sender_fd);
-		prefix = ":" + client.getNick() + "!" + client.getUser() + " ";
-	}
-	return (prefix);
-}
-
-//	Add message to the server's message out buffer for that client
 void Server::sendString(int sender_fd, int target_fd, const std::string &message) {
 	try {
 		outBuffs[target_fd].push_back( getPrefix(sender_fd) + message );
@@ -73,6 +59,19 @@ void Server::sendString(int sender_fd, int target_fd, const std::string &message
 	}
 }
 
+//	Get the correct message prefix based on sender fd
+std::string Server::getPrefix(int sender_fd) {
+	std::string prefix;
+
+	if (sender_fd == server_fd)
+		prefix = ":" + serverName() + " ";
+	else {
+		Client &client = getClientRef(sender_fd);
+		prefix = ":" + client.getNick() + "!" + client.getUser() + " ";
+	}
+	return (prefix);
+}
+
 //	Client Commands
 
 void Server::acceptClient(struct pollfd* fds) {
@@ -83,14 +82,23 @@ void Server::acceptClient(struct pollfd* fds) {
 	}
 
 	log.info("Client connected: fd " + intToString(client_fd));
-	clients[client_fd] = new Client(client_fd, *this);
+	Client *new_client = new Client(client_fd, *this);
+	clients[client_fd] = new_client;
 
+	bool assigned = false;
 	for (int i = 1; i <= MAX_CLIENTS; i++) {
 		if (fds[i].fd == -1) {
 			fds[i].fd = client_fd;
 			fds[i].events = POLLIN;
+			assigned = true;
 			break;
 		}
+	}
+	if (!assigned) {
+		log.error("Too many clients. Rejecting client fd " + intToString(client_fd));
+		delete new_client;
+		clients.erase(client_fd);
+		close(client_fd);
 	}
 }
 
@@ -101,9 +109,18 @@ void Server::handleDisconnect(int client_fd, int bytes_received) {
 		log.error("Received error on client: fd " + intToString(client_fd));
 	}
 	close(client_fd);
+	delete clients[client_fd];
 	clients.erase(client_fd);
 	inBuffs.erase(client_fd);
 	outBuffs.erase(client_fd);
+
+	for (int i = 1; i <= MAX_CLIENTS; i++) {
+		if (fds[i].fd == client_fd) {
+			fds[i].fd = -1;
+			fds[i].events = 0;
+			break;
+		}
+	}
 }
 
 std::string Server::handleAuth(int client_fd, const std::string &in_pass)
@@ -114,7 +131,8 @@ std::string Server::handleAuth(int client_fd, const std::string &in_pass)
 		unsigned int in_hashed_pass = hashSimple(in_pass);
 
 		if (in_hashed_pass != this->hashed_pass)
-			throw std::runtime_error("Password incorrect");
+			throw std::runtime_error("464 " + clients[client_fd]->getNick()
+					+ " :Password incorrect");
 		clients[client_fd]->setAuthenticated();
 		output = "Password accepted";
 		return (output);

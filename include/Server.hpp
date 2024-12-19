@@ -6,7 +6,7 @@
 /*   By: pyerima <pyerima@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 14:48:02 by pyerima           #+#    #+#             */
-/*   Updated: 2024/12/18 21:07:38 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/19 22:26:17 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -108,6 +108,7 @@ public:
 	Client		&getClientRef(const int &fd) const;
 	Channel		*getChannel(const std::string &search) const;
 	Channel		&getChannelRef(const std::string &search) const;
+	Channel		&getChannelRef(const int &exec_fd, const std::string &search) const;
 
 	void sendMessages(struct pollfd &fd);
 	void removeChannel( const Channel &channel );
