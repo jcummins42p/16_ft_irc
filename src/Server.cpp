@@ -6,7 +6,7 @@
 /*   By: pyerima <pyerima@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 14:48:02 by pyerima           #+#    #+#             */
-/*   Updated: 2024/12/19 23:39:08 by jcummins         ###   ########.fr       */
+/*   Updated: 2024/12/20 08:56:55 by jcummins         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -242,7 +242,7 @@ void Server::handleClient(int client_fd) {
 			processMessage(client_fd, message);
 		}
 	}
-	inBuffs[client_fd].erase();
+	//inBuffs[client_fd].erase();
 }
 
 void Server::run() {
